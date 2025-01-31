@@ -115,13 +115,28 @@ const StudentAttendanceForm = () => {
     }
   };
 
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Present':
+        return 'text-green-500';
+      case 'Absent':
+        return 'text-red-500';
+      case 'Unhealthy':
+        return 'text-yellow-500';
+      case 'Leave':
+        return 'text-blue-500';
+      default:
+        return 'text-white';
+    }
+  };
+
   return (
     <div className="max-w-3xl mx-auto bg-gray-900 text-white shadow-lg rounded-lg p-8">
       <h1 className="text-3xl font-bold mb-6 text-center">Record Attendance</h1>
       <p className="text-gray-300 text-center mb-4">Date: {currentDate}</p>
       {error && <p className="text-red-500 bg-red-100 p-2 rounded mb-4">{error}</p>}
       {success && <p className="text-green-500 bg-green-100 p-2 rounded mb-4">{success}</p>}
-
+  
       <form onSubmit={handleSubmit}>
         <div className="mb-6">
           <label className="block text-sm mb-2">Date</label>
@@ -133,7 +148,7 @@ const StudentAttendanceForm = () => {
             required
           />
         </div>
-
+  
         <div className="mb-6">
           <label htmlFor="class" className="block text-gray-300 font-medium mb-2">
             Select Class
@@ -153,7 +168,7 @@ const StudentAttendanceForm = () => {
             ))}
           </select>
         </div>
-
+  
         {loading && <p className="text-white">Loading students...</p>}
         {!loading && students.length > 0 && (
           <div className="mb-6">
@@ -164,12 +179,12 @@ const StudentAttendanceForm = () => {
                   <select
                     value={attendance[student._id] || "Present"}
                     onChange={(e) => handleAttendanceChange(student._id, e.target.value)}
-                    className="w-full p-2 border border-gray-600 bg-gray-800 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={`w-full p-2 border border-gray-600 bg-gray-800 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${getStatusColor(attendance[student._id])}`}
                   >
-                    <option value="Present">Present</option>
-                    <option value="Absent">Absent</option>
-                    <option value="Unhealthy">Unhealthy</option>
-                    <option value="Leave">Leave</option>
+                    <option value="Present" className="text-green-500">Present</option>
+                    <option value="Absent" className="text-red-500">Absent</option>
+                    <option value="Unhealthy" className="text-yellow-500">Unhealthy</option>
+                    <option value="Leave" className="text-blue-500">Leave</option>
                   </select>
                   <label htmlFor={`attendance-${student._id}`} className="ml-3 text-gray-200">
                     {student.name}
@@ -179,7 +194,7 @@ const StudentAttendanceForm = () => {
             </div>
           </div>
         )}
-
+  
         <div className="flex justify-center">
           <button
             type="submit"
@@ -192,6 +207,7 @@ const StudentAttendanceForm = () => {
       </form>
     </div>
   );
+  
 };
 
 export default StudentAttendanceForm;

@@ -129,6 +129,21 @@ const StudentAttendanceList = () => {
     }
   };
 
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Present':
+        return 'text-green-500';
+      case 'Absent':
+        return 'text-red-500';
+      case 'Unhealthy':
+        return 'text-yellow-500';
+      case 'Leave':
+        return 'text-blue-500';
+      default:
+        return 'text-white';
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto bg-gray-900 text-white p-8 rounded-lg shadow">
       <h1 className="text-2xl font-bold mb-4 text-center">View Student Attendance</h1>
@@ -234,13 +249,15 @@ const StudentAttendanceList = () => {
                           defaultValue={record.status}
                           onBlur={(e) => handleEdit(record._id, e.target.value)}
                         >
-                          <option value="Present">Present</option>
-                          <option value="Absent">Absent</option>
-                          <option value="Unhealthy">Unhealthy</option>
-                          <option value="Leave">Leave</option>
+                          <option value="Present" className="text-green-500">Present</option>
+                          <option value="Absent" className="text-red-500">Absent</option>
+                          <option value="Unhealthy" className="text-yellow-500">Unhealthy</option>
+                          <option value="Leave" className="text-blue-500">Leave</option>
                         </select>
                       ) : (
-                        record.status
+                        <span className={getStatusColor(record.status)}>
+                          {record.status}
+                        </span>
                       )}
                     </td>
                     <td className="px-4 py-2">
