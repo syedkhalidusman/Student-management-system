@@ -89,12 +89,10 @@ const AttendanceCalendar = () => {
     setError('');
 
     try {
-      // Get the first day of previous month
       const startDate = new Date();
       startDate.setMonth(startDate.getMonth() - 1);
       startDate.setDate(1);
       
-      // Get the last day of next month
       const endDate = new Date();
       endDate.setMonth(endDate.getMonth() + 2, 0);
 
@@ -139,6 +137,9 @@ const AttendanceCalendar = () => {
       case 'Leave':
         backgroundColor = '#3B82F6'; // blue
         break;
+      case 'Holiday':
+        backgroundColor = '#8B5CF6'; // purple
+        break;
       default:
         break;
     }
@@ -155,7 +156,6 @@ const AttendanceCalendar = () => {
     };
   };
 
-  // Custom toolbar to show month and year
   const CustomToolbar = (toolbar) => {
     const goToBack = () => {
       toolbar.date.setMonth(toolbar.date.getMonth() - 1);
@@ -174,33 +174,73 @@ const AttendanceCalendar = () => {
       toolbar.onNavigate('current');
     };
 
-    return (
-      <div className="rbc-toolbar">
-        <span className="rbc-btn-group">
-          <button type="button" onClick={goToBack}>&lt;</button>
-          <button type="button" onClick={goToCurrent}>Today</button>
-          <button type="button" onClick={goToNext}>&gt;</button>
-        </span>
-        <span className="rbc-toolbar-label">
-          {format(toolbar.date, 'MMMM yyyy')}
-        </span>
-        <span className="rbc-btn-group">
-          {toolbar.views.map(view => (
-            <button
-              key={view}
-              type="button"
-              className={view === toolbar.view ? 'rbc-active' : ''}
-              onClick={() => toolbar.onView(view)}
-            >
-              {view}
-            </button>
+    const getDayNames = () => {
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      return (
+        <div className="grid grid-cols-7 gap-2 mt-2 text-gray-800 text-sm font-medium">
+          {days.map((day) => (
+            <div key={day} className="text-center py-2 px-2 bg-gray-700 text-white rounded">
+              {day}
+            </div>
           ))}
-        </span>
+        </div>
+      );
+    };
+
+    return (
+      <div className="flex flex-col items-center">
+        <h2 className="text-2xl font-bold mb-4 text-gray-800">
+          {format(toolbar.date, 'MMMM yyyy')}
+        </h2>
+
+        <div className="flex items-center space-x-4 w-full justify-between bg-gray-800 p-2 rounded">
+          <div className="flex space-x-2">
+            <button
+              type="button"
+              onClick={goToBack}
+              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded"
+            >
+              &lt;
+            </button>
+            <button
+              type="button"
+              onClick={goToCurrent}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded"
+            >
+              Today
+            </button>
+            <button
+              type="button"
+              onClick={goToNext}
+              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded"
+            >
+              &gt;
+            </button>
+          </div>
+
+          <div className="flex space-x-2">
+            {toolbar.views.map(view => (
+              <button
+                key={view}
+                type="button"
+                className={`px-4 py-2 rounded ${
+                  view === toolbar.view 
+                    ? 'bg-blue-600 hover:bg-blue-700' 
+                    : 'bg-gray-700 hover:bg-gray-600'
+                }`}
+                onClick={() => toolbar.onView(view)}
+              >
+                {view.charAt(0).toUpperCase() + view.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {getDayNames()}
       </div>
     );
   };
 
-  // Custom event component to show more details
   const EventComponent = ({ event }) => (
     <>
       <div className="text-sm p-1 text-center font-semibold">
@@ -212,7 +252,6 @@ const AttendanceCalendar = () => {
     </>
   );
 
-  // Add this new function to handle double click
   const handleDoubleClick = (event) => {
     setEditingEvent({
       id: event.id,
@@ -221,14 +260,12 @@ const AttendanceCalendar = () => {
     });
   };
 
-  // Add this new function to handle status update
   const handleStatusUpdate = async (newStatus) => {
     try {
       await axios.put(`/api/studentAttendance/${editingEvent.id}`, {
         status: newStatus
       });
-      
-      // Refresh the calendar data
+
       fetchAttendance();
       setEditingEvent(null);
     } catch (error) {
@@ -236,7 +273,6 @@ const AttendanceCalendar = () => {
     }
   };
 
-  // Add this new component for the edit modal
   const EditModal = () => {
     if (!editingEvent) return null;
 
@@ -246,7 +282,7 @@ const AttendanceCalendar = () => {
           <h3 className="text-xl mb-4">Update Attendance Status</h3>
           <p className="mb-4">Date: {format(editingEvent.date, 'EEEE, MMMM dd, yyyy')}</p>
           <div className="grid grid-cols-2 gap-2">
-            {['Present', 'Absent', 'Unhealthy', 'Leave'].map((status) => (
+            {['Present', 'Absent', 'Unhealthy', 'Leave', 'Holiday'].map((status) => (
               <button
                 key={status}
                 onClick={() => handleStatusUpdate(status)}
@@ -301,7 +337,7 @@ const AttendanceCalendar = () => {
         />
         <Dropdown
           label="Student"
-          options={students.map(student => ({ label: student.name, value: student._id }))}
+          options={students.map(student => ({ label: student.name, value: student._id }))} 
           value={selectedStudent}
           onChange={(e) => setSelectedStudent(e.target.value)}
         />
@@ -315,7 +351,7 @@ const AttendanceCalendar = () => {
         {loading ? 'Loading...' : 'Load Calendar'}
       </button>
 
-      <div className="bg-white rounded-lg p-4" style={{ height: '600px' }}>
+      <div className="bg-white rounded-lg p-4" style={{ height: '700px' }}>
         <Calendar
           localizer={localizer}
           events={events}
@@ -337,6 +373,7 @@ const AttendanceCalendar = () => {
       </div>
       <EditModal />
     </div>
+    
   );
 };
 

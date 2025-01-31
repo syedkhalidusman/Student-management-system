@@ -253,6 +253,7 @@ const StudentAttendanceList = () => {
                           <option value="Absent" className="text-red-500">Absent</option>
                           <option value="Unhealthy" className="text-yellow-500">Unhealthy</option>
                           <option value="Leave" className="text-blue-500">Leave</option>
+                          <option value="Holiday" className="text-purple-500">Holiday</option>
                         </select>
                       ) : (
                         <span className={getStatusColor(record.status)}>

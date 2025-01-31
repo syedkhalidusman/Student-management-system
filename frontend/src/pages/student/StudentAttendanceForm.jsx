@@ -144,6 +144,8 @@ const StudentAttendanceForm = () => {
         return 'text-yellow-500';
       case 'Leave':
         return 'text-blue-500';
+      case 'Holiday':
+        return 'text-purple-500';
       default:
         return 'text-white';
     }
@@ -240,6 +242,7 @@ const StudentAttendanceForm = () => {
                       <option value="Absent" className="text-red-500">Absent</option>
                       <option value="Unhealthy" className="text-yellow-500">Unhealthy</option>
                       <option value="Leave" className="text-blue-500">Leave</option>
+                      <option value="Holiday" className="text-purple-500">Holiday</option>
                     </select>
                   </div>
                 )}
@@ -257,6 +260,7 @@ const StudentAttendanceForm = () => {
                       <option value="Absent" className="text-red-500">Absent</option>
                       <option value="Unhealthy" className="text-yellow-500">Unhealthy</option>
                       <option value="Leave" className="text-blue-500">Leave</option>
+                      <option value="Holiday" className="text-purple-500">Holiday</option>
                     </select>
                     <label htmlFor={`attendance-${student._id}`} className="ml-3 text-gray-200">
                       {student.name}
