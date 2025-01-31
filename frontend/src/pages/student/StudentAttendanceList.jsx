@@ -29,7 +29,9 @@ const StudentAttendanceList = () => {
   const [attendance, setAttendance] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [viewType, setViewType] = useState("single"); // Add this new state
+  const [viewType, setViewType] = useState("single");
+  const [dateRangeStart, setDateRangeStart] = useState("");
+  const [dateRangeEnd, setDateRangeEnd] = useState("");
 
   useEffect(() => {
     axios
@@ -57,8 +59,13 @@ const StudentAttendanceList = () => {
   };
 
   const fetchAttendance = async () => {
-    if (!selectedClass || (!selectedStudent && viewType === "single") || !selectedDate) {
+    if (!selectedClass || (!selectedStudent && viewType === "single")) {
       setError("Please select all required filters.");
+      return;
+    }
+
+    if (viewType === "range" && (!dateRangeStart || !dateRangeEnd)) {
+      setError("Please select both start and end dates.");
       return;
     }
 
@@ -75,17 +82,18 @@ const StudentAttendanceList = () => {
           },
         });
         setAttendance(response.data ? [response.data] : []);
-      } else {
-        // Fetch all students' attendance for the class
-        const response = await axios.get('/api/studentAttendance/by-class-date', {
+      } else if (viewType === "range") {
+        const response = await axios.get('/api/studentAttendance/by-date-range', {
           params: {
             classId: selectedClass,
-            date: selectedDate,
+            studentId: selectedStudent || undefined,
+            startDate: dateRangeStart,
+            endDate: dateRangeEnd,
           },
         });
         setAttendance(response.data || []);
       }
-    } catch {
+    } catch (error) {
       setError("Failed to fetch attendance.");
     } finally {
       setLoading(false);
@@ -107,8 +115,8 @@ const StudentAttendanceList = () => {
           }}
           className="w-full p-2 rounded bg-gray-800"
         >
-          <option value="single">Single Student</option>
-          <option value="class">Entire Class</option>
+          <option value="single">Single Day</option>
+          <option value="range">Date Range</option>
         </select>
       </div>
 
@@ -129,15 +137,39 @@ const StudentAttendanceList = () => {
         )}
       </div>
 
-      <div className="mb-6">
-        <label className="block text-sm mb-2">Date</label>
-        <input
-          type="date"
-          value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value)}
-          className="w-full p-2 rounded bg-gray-800"
-        />
-      </div>
+      {viewType === "single" ? (
+        <div className="mb-6">
+          <label className="block text-sm mb-2">Date</label>
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="w-full p-2 rounded bg-gray-800"
+          />
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div>
+            <label className="block text-sm mb-2">Start Date</label>
+            <input
+              type="date"
+              value={dateRangeStart}
+              onChange={(e) => setDateRangeStart(e.target.value)}
+              className="w-full p-2 rounded bg-gray-800"
+            />
+          </div>
+          <div>
+            <label className="block text-sm mb-2">End Date</label>
+            <input
+              type="date"
+              value={dateRangeEnd}
+              onChange={(e) => setDateRangeEnd(e.target.value)}
+              max={new Date().toISOString().split('T')[0]}
+              className="w-full p-2 rounded bg-gray-800"
+            />
+          </div>
+        </div>
+      )}
 
       <button
         onClick={fetchAttendance}
@@ -172,7 +204,7 @@ const StudentAttendanceList = () => {
           </div>
         </div>
       )}
-      
+
       {!loading && attendance.length === 0 && (
         <p className="text-center text-gray-400 mt-4">No attendance records found.</p>
       )}

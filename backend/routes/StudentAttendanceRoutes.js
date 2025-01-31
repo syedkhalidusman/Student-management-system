@@ -5,6 +5,7 @@ import {
   getMonthlyAttendanceByStudent,
   getAttendanceByStudentClassAndDate,
   getAttendanceByClassAndDate,
+  getAttendanceByDateRange,
 } from '../controllers/StudentAttendanceController.js';
 
 const router = express.Router();
@@ -23,5 +24,8 @@ router.get('/by-student-class-date', getAttendanceByStudentClassAndDate);
 
 // Route to get attendance by class and date
 router.get('/by-class-date', getAttendanceByClassAndDate);
+
+// Route to get attendance by date range
+router.get('/by-date-range', getAttendanceByDateRange);
 
 export default router;
