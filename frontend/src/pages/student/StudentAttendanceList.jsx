@@ -59,12 +59,12 @@ const StudentAttendanceList = () => {
   };
 
   const fetchAttendance = async () => {
-    if (!selectedClass || (!selectedStudent && viewType === "single")) {
+    if (!selectedClass || (!selectedStudent && (viewType === "single" || viewType === "studentRange"))) {
       setError("Please select all required filters.");
       return;
     }
 
-    if (viewType === "range" && (!dateRangeStart || !dateRangeEnd)) {
+    if ((viewType === "range" || viewType === "studentRange") && (!dateRangeStart || !dateRangeEnd)) {
       setError("Please select both start and end dates.");
       return;
     }
@@ -82,11 +82,11 @@ const StudentAttendanceList = () => {
           },
         });
         setAttendance(response.data ? [response.data] : []);
-      } else if (viewType === "range") {
+      } else if (viewType === "range" || viewType === "studentRange") {
         const response = await axios.get('/api/studentAttendance/by-date-range', {
           params: {
             classId: selectedClass,
-            studentId: selectedStudent || undefined,
+            studentId: viewType === "studentRange" ? selectedStudent : undefined,
             startDate: dateRangeStart,
             endDate: dateRangeEnd,
           },
@@ -116,7 +116,8 @@ const StudentAttendanceList = () => {
           className="w-full p-2 rounded bg-gray-800"
         >
           <option value="single">Single Day</option>
-          <option value="range">Date Range</option>
+          <option value="studentRange">Student Date Range</option>
+          <option value="range">Class Date Range</option>
         </select>
       </div>
 
@@ -127,7 +128,7 @@ const StudentAttendanceList = () => {
           value={selectedClass}
           onChange={handleClassChange}
         />
-        {viewType === "single" && (
+        {(viewType === "single" || viewType === "studentRange") && (
           <Dropdown
             label="Student"
             options={students.map((student) => ({ label: student.name, value: student._id }))}

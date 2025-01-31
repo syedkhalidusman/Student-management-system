@@ -22,7 +22,6 @@ const Sidebar = ({ isOpen }) => {
   };
 
   const menuData = [
-    { name: "Desktop", url: "/", icon: FaDesktop },
 
     { name: "Dashboard", url: "/dashboard", icon: FaTachometerAlt },
 
