@@ -94,6 +94,11 @@ const Sidebar = ({ isOpen }) => {
           url: "/student-attendance-list",
           icon: FaUsers,
         },
+        {
+          name: "/attendance calendar",
+          url: "/attendance-calendar",
+          icon: FaUsers,
+        },
       ],
     },
     { name: "Login", url: "/signin", icon: FaSignInAlt }, // Corrected URL
