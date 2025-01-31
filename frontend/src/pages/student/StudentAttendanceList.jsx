@@ -32,6 +32,7 @@ const StudentAttendanceList = () => {
   const [viewType, setViewType] = useState("single");
   const [dateRangeStart, setDateRangeStart] = useState("");
   const [dateRangeEnd, setDateRangeEnd] = useState("");
+  const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
     axios
@@ -97,6 +98,34 @@ const StudentAttendanceList = () => {
       setError("Failed to fetch attendance.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEdit = async (recordId, newStatus) => {
+    try {
+      await axios.put(`/api/studentAttendance/${recordId}`, {
+        status: newStatus
+      });
+      
+      // Refresh the attendance data
+      fetchAttendance();
+      setEditingId(null);
+    } catch (error) {
+      setError("Failed to update attendance.");
+    }
+  };
+
+  const handleDelete = async (recordId) => {
+    if (!window.confirm("Are you sure you want to delete this attendance record?")) {
+      return;
+    }
+
+    try {
+      await axios.delete(`/api/studentAttendance/${recordId}`);
+      // Refresh the attendance data
+      fetchAttendance();
+    } catch (error) {
+      setError("Failed to delete attendance.");
     }
   };
 
@@ -190,6 +219,7 @@ const StudentAttendanceList = () => {
                   <th className="px-4 py-2 text-left">Student Name</th>
                   <th className="px-4 py-2 text-left">Date</th>
                   <th className="px-4 py-2 text-left">Status</th>
+                  <th className="px-4 py-2 text-left">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -197,7 +227,36 @@ const StudentAttendanceList = () => {
                   <tr key={record._id} className="border-t border-gray-700">
                     <td className="px-4 py-2">{record.student?.name}</td>
                     <td className="px-4 py-2">{new Date(record.date).toLocaleDateString()}</td>
-                    <td className="px-4 py-2">{record.status}</td>
+                    <td className="px-4 py-2">
+                      {editingId === record._id ? (
+                        <select
+                          className="bg-gray-700 rounded p-1"
+                          defaultValue={record.status}
+                          onBlur={(e) => handleEdit(record._id, e.target.value)}
+                        >
+                          <option value="Present">Present</option>
+                          <option value="Absent">Absent</option>
+                          <option value="Unhealthy">Unhealthy</option>
+                          <option value="Leave">Leave</option>
+                        </select>
+                      ) : (
+                        record.status
+                      )}
+                    </td>
+                    <td className="px-4 py-2">
+                      <button
+                        onClick={() => setEditingId(record._id)}
+                        className="bg-blue-500 text-white px-2 py-1 rounded mr-2 text-sm"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(record._id)}
+                        className="bg-red-500 text-white px-2 py-1 rounded text-sm"
+                      >
+                        Delete
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

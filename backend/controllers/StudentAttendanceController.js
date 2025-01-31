@@ -174,3 +174,42 @@ export const getAttendanceByDateRange = async (req, res) => {
     res.status(500).json({ message: 'Error fetching attendance', error: error.message });
   }
 };
+
+// Update attendance record
+export const updateAttendance = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const attendance = await StudentAttendance.findById(id);
+    if (!attendance) {
+      return res.status(404).json({ message: 'Attendance record not found' });
+    }
+
+    attendance.status = status;
+    await attendance.save();
+
+    res.status(200).json({ message: 'Attendance updated successfully', attendance });
+  } catch (error) {
+    console.error('Error updating attendance:', error.message);
+    res.status(400).json({ message: 'Error updating attendance', error: error.message });
+  }
+};
+
+// Delete attendance record
+export const deleteAttendance = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const attendance = await StudentAttendance.findById(id);
+    if (!attendance) {
+      return res.status(404).json({ message: 'Attendance record not found' });
+    }
+
+    await attendance.remove();
+    res.status(200).json({ message: 'Attendance deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting attendance:', error.message);
+    res.status(400).json({ message: 'Error deleting attendance', error: error.message });
+  }
+};
