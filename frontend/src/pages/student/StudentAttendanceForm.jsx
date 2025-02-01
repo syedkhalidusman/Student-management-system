@@ -210,6 +210,25 @@ const StudentAttendanceForm = () => {
         {!loading && students.length > 0 && (
           <div className="mb-6">
             <h2 className="text-xl font-bold mb-4">Mark Attendance</h2>
+            
+            {/* Add Holiday Button */}
+            {!isSingleStudent && (
+              <button
+                type="button"
+                onClick={() => {
+                  setAttendance(
+                    students.reduce((acc, student) => {
+                      acc[student._id] = "Holiday";
+                      return acc;
+                    }, {})
+                  );
+                }}
+                className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition mb-4 w-full"
+              >
+                Mark All as Holiday
+              </button>
+            )}
+
             {isSingleStudent ? (
               <div className="mb-4">
                 <label className="block text-gray-300 font-medium mb-2">

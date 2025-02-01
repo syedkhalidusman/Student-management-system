@@ -144,6 +144,15 @@ const StudentAttendanceList = () => {
     }
   };
 
+  // Add this function to format the date
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
   return (
     <div className="max-w-4xl mx-auto bg-gray-900 text-white p-8 rounded-lg shadow">
       <h1 className="text-2xl font-bold mb-4 text-center">View Student Attendance</h1>
@@ -241,7 +250,7 @@ const StudentAttendanceList = () => {
                 {attendance.map((record) => (
                   <tr key={record._id} className="border-t border-gray-700">
                     <td className="px-4 py-2">{record.student?.name}</td>
-                    <td className="px-4 py-2">{new Date(record.date).toLocaleDateString()}</td>
+                    <td className="px-4 py-2">{formatDate(record.date)}</td>
                     <td className="px-4 py-2">
                       {editingId === record._id ? (
                         <select
