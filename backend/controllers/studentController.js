@@ -25,7 +25,7 @@ export const getStudents = async (req, res) => {
   } catch (error) {
     res.status(400).json({ message: 'Error fetching students', error: error.message });
   }
-};
+}; 
 
 // Get a single student by ID
 export const getStudentById = async (req, res) => {

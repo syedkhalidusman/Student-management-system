@@ -11,7 +11,7 @@ const studentSchema = new mongoose.Schema(
     roleNumber: {
       type: String,
       required: true,
-      unique: true,
+      unique: true, 
       trim: true,
     },
     registrationNumber: {

@@ -21,3 +21,4 @@ router.delete("/:id", deleteStudent);  // Delete student by ID
 router.post('/check-unique', checkUniqueField);
 
 export default router;
+ 

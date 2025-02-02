@@ -92,7 +92,7 @@ const StudentList = () => {
                       to={`/student/view/${student._id}`}
                       className="text-green-400 hover:underline mr-4"
                     >
-                      View
+                      View 
                     </Link>
                     <Link
                       to={`/student/edit/${student._id}`}

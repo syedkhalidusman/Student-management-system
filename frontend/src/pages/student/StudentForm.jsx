@@ -145,6 +145,12 @@ const StudentForm = () => {
     if (!formData.gender) newErrors.gender = "Gender is required.";
     if (!formData.subject) newErrors.subject = "Subject is required.";
 
+    // Add CNIC validation
+    const cnicRegex = /^\d{5}-\d{7}-\d{1}$/;
+    if (!cnicRegex.test(formData.fatherIdentityCard.trim())) {
+      newErrors.fatherIdentityCard = "CNIC must be in format: 12345-1234567-1";
+    }
+
     // Check uniqueness for roleNumber, registrationNumber, fatherIdentityCard
     await checkUnique("roleNumber", formData.roleNumber);
     await checkUnique("registrationNumber", formData.registrationNumber);
@@ -191,6 +197,50 @@ const StudentForm = () => {
     navigate(-1); // Navigate to the student list page
   };
 
+  const generateRandomData = () => {
+    // Helper function to pad numbers with leading zeros
+    const padNumber = (num, length) => {
+      return String(num).padStart(length, '0');
+    };
+
+    // Generate CNIC parts with exact lengths
+    const part1 = padNumber(Math.floor(Math.random() * 100000), 5);  // 5 digits
+    const part2 = padNumber(Math.floor(Math.random() * 10000000), 7); // 7 digits
+    const part3 = padNumber(Math.floor(Math.random() * 10), 1);      // 1 digit
+
+    const randomData = {
+      name: `Student ${Math.floor(Math.random() * 1000)}`,
+      roleNumber: `R${Math.floor(Math.random() * 10000)}`,
+      registrationNumber: `REG${Math.floor(Math.random() * 10000)}`,
+      fatherIdentityCard: `${part1}-${part2}-${part3}`, // Will always be format: 12345-1234567-1
+      homeland: ["Pakistan", "India", "Bangladesh", "Afghanistan"][Math.floor(Math.random() * 4)],
+      currentAddress: `Street ${Math.floor(Math.random() * 100)}, City`,
+      permanentAddress: `Street ${Math.floor(Math.random() * 100)}, City`,
+      guardianName: `Guardian ${Math.floor(Math.random() * 1000)}`,
+      overbearingParenting: ["Yes", "No"][Math.floor(Math.random() * 2)],
+      guardianAddress: `Guardian Street ${Math.floor(Math.random() * 100)}, City`,
+      guardianPhone: `03${Math.floor(Math.random() * 100000000)}`,
+      schoolHistory: `Previous School ${Math.floor(Math.random() * 100)}`,
+      lastSeminary: `Seminary ${Math.floor(Math.random() * 100)}`,
+      dateOfJoining: new Date(),
+      dateOfBirth: new Date(1990 + Math.floor(Math.random() * 20), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28)),
+      emergencyNumber: `03${Math.floor(Math.random() * 100000000)}`,
+      qualification: ["Matric", "Intermediate", "Bachelor"][Math.floor(Math.random() * 3)],
+      gender: ["Male", "Female"][Math.floor(Math.random() * 2)],
+    };
+
+    // Set random class and subject if available
+    if (classes.length > 0) {
+      randomData.class = classes[Math.floor(Math.random() * classes.length)]._id;
+    }
+    if (subjects.length > 0) {
+      randomData.subject = subjects[Math.floor(Math.random() * subjects.length)]._id;
+    }
+
+    setFormData(randomData);
+    calculateAge(randomData.dateOfBirth);
+  };
+
   if (loading) return <p className="text-white">Loading...</p>;
   if (error.general) return <p className="text-red-500">{error.general}</p>;
 
@@ -199,7 +249,13 @@ const StudentForm = () => {
     { label: "Role Number", id: "roleNumber", type: "text", placeholder: "Enter role number" },
     { label: "Registration Number", id: "registrationNumber", type: "text", placeholder: "Enter registration number" },
     { label: "Age", id: "age", type: "number", readOnly: true, placeholder: "Calculated automatically" },
-    { label: "Father's ID Number", id: "fatherIdentityCard", type: "text", placeholder: "12345-1234567-1" },
+    { 
+      label: "Father's CNIC", 
+      id: "fatherIdentityCard", 
+      type: "text", 
+      placeholder: "12345-1234567-1",
+      pattern: "\\d{5}-\\d{7}-\\d{1}"  // HTML5 pattern validation
+    },
     { label: "Homeland (Citizenship)", id: "homeland", type: "text", placeholder: "Enter homeland" },
     { label: "Current Address", id: "currentAddress", type: "text", placeholder: "Enter current address" },
     { label: "Permanent Address", id: "permanentAddress", type: "text", placeholder: "Enter permanent address" },
@@ -220,7 +276,16 @@ const StudentForm = () => {
 
   return (
     <div className="w-full mx-auto bg-gray-900 text-white shadow-md rounded-lg p-6">
-      <h1 className="text-2xl font-bold  mb-6">{isEditing ? "Edit Student" : "Add New Student"}</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">{isEditing ? "Edit Student" : "Add New Student"}</h1>
+        <button
+          type="button"
+          onClick={generateRandomData}
+          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+        >
+          Generate Random Data
+        </button>
+      </div>
 
       <form
         onSubmit={handleSubmit}
