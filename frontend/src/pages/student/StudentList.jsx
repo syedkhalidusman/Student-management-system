@@ -40,7 +40,8 @@ const StudentList = () => {
   const filteredStudents = students.filter(
     (student) =>
       student.name.toLowerCase().includes(search.toLowerCase()) ||
-      student.guardianName.toLowerCase().includes(search.toLowerCase())
+      student.guardianName.toLowerCase().includes(search.toLowerCase()) ||
+      student.roleNumber.toLowerCase().includes(search.toLowerCase()) // Added roleNumber filter
   );
 
   return (
@@ -58,7 +59,7 @@ const StudentList = () => {
       <div className="mb-4">
         <input
           type="text"
-          placeholder="Search by student or guardian name"
+          placeholder="Search by student or guardian name or role number"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full p-2 bg-gray-800 border-2 border-gray-600 text-white outline-none rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -73,6 +74,7 @@ const StudentList = () => {
               <th className="border border-gray-600 p-2">#</th>
               <th className="border border-gray-600 p-2">Student Name</th>
               <th className="border border-gray-600 p-2">Guardian Name</th>
+              <th className="border border-gray-600 p-2">Role Number</th> {/* Added Role Number Column */}
               <th className="border border-gray-600 p-2">Actions</th>
             </tr>
           </thead>
@@ -86,6 +88,9 @@ const StudentList = () => {
                   <td className="border border-gray-600 p-2">{student.name}</td>
                   <td className="border border-gray-600 p-2">
                     {student.guardianName}
+                  </td>
+                  <td className="border border-gray-600 p-2">
+                    {student.roleNumber} {/* Display Role Number */}
                   </td>
                   <td className="border border-gray-600 p-2 text-center">
                     <Link

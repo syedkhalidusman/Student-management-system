@@ -30,6 +30,9 @@ const StudentForm = () => {
     class: "",
     gender: "",
     subject: "",
+    status: "Active",
+    expelledDate: null,
+    leaveRecords: [] // Array of {fromDate, toDate}
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState({});
@@ -120,6 +123,15 @@ const StudentForm = () => {
     }
   };
 
+  const handleLeaveRecord = (index, field, value) => {
+    const updatedLeaveRecords = [...formData.leaveRecords];
+    if (!updatedLeaveRecords[index]) {
+      updatedLeaveRecords[index] = {};
+    }
+    updatedLeaveRecords[index][field] = value;
+    setFormData(prev => ({ ...prev, leaveRecords: updatedLeaveRecords }));
+  };
+
   const validateForm = async () => {
     const newErrors = {};
 
@@ -155,6 +167,25 @@ const StudentForm = () => {
     await checkUnique("roleNumber", formData.roleNumber);
     await checkUnique("registrationNumber", formData.registrationNumber);
     await checkUnique("fatherIdentityCard", formData.fatherIdentityCard);
+
+    // Status-related validation
+    if (formData.status === "Expelled" && !formData.expelledDate) {
+      newErrors.expelledDate = "Expelled date is required when status is Expelled";
+    }
+
+    if (formData.status === "On Leave") {
+      if (formData.leaveRecords.length === 0) {
+        newErrors.leaveRecords = "At least one leave record is required";
+      } else {
+        formData.leaveRecords.forEach((record, index) => {
+          if (!record.fromDate || !record.toDate) {
+            newErrors[`leaveRecord${index}`] = "Both from and to dates are required";
+          } else if (new Date(record.fromDate) > new Date(record.toDate)) {
+            newErrors[`leaveRecord${index}`] = "From date must be before to date";
+          }
+        });
+      }
+    }
 
     setError(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -272,7 +303,78 @@ const StudentForm = () => {
     { label: "Class", id: "class", type: "select" },
     { label: "Gender", id: "gender", type: "select" },
     { label: "Subject", id: "subject", type: "select" },
+    ...(isEditing ? [
+      {
+        label: "Student Status",
+        id: "status",
+        type: "select",
+        options: [
+          { value: "Active", label: "Active" },
+          { value: "Expelled", label: "Expelled" },
+          { value: "On Leave", label: "On Leave" }
+        ]
+      },
+      ...(formData.status === "Expelled" ? [
+        {
+          label: "Expelled Date",
+          id: "expelledDate",
+          type: "date"
+        }
+      ] : []),
+      ...(formData.status === "On Leave" ? [
+        {
+          label: "Leave Records",
+          id: "leaveRecords",
+          type: "leaveRecords"
+        }
+      ] : [])
+    ] : [])
   ];
+
+  const LeaveRecords = () => (
+    <div className="space-y-4">
+      {formData.leaveRecords.map((record, index) => (
+        <div key={index} className="flex space-x-4 items-center">
+          <DatePicker
+            selected={record.fromDate ? new Date(record.fromDate) : null}
+            onChange={(date) => handleLeaveRecord(index, 'fromDate', date)}
+            dateFormat="yyyy-MM-dd"
+            className="p-2 border border-gray-600 bg-gray-800 rounded w-full"
+            placeholderText="From Date"
+          />
+          <DatePicker
+            selected={record.toDate ? new Date(record.toDate) : null}
+            onChange={(date) => handleLeaveRecord(index, 'toDate', date)}
+            dateFormat="yyyy-MM-dd"
+            className="p-2 border border-gray-600 bg-gray-800 rounded w-full"
+            placeholderText="To Date"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              const updatedRecords = formData.leaveRecords.filter((_, i) => i !== index);
+              setFormData(prev => ({ ...prev, leaveRecords: updatedRecords }));
+            }}
+            className="bg-red-600 text-white px-3 py-2 rounded hover:bg-red-700"
+          >
+            Remove
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={() => {
+          setFormData(prev => ({
+            ...prev,
+            leaveRecords: [...prev.leaveRecords, { fromDate: null, toDate: null }]
+          }));
+        }}
+        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+      >
+        Add Leave Record
+      </button>
+    </div>
+  );
 
   return (
     <div className="w-full mx-auto bg-gray-900 text-white shadow-md rounded-lg p-6">
@@ -291,8 +393,8 @@ const StudentForm = () => {
         onSubmit={handleSubmit}
         className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
       >
-        {fields.map(({ label, id, type, readOnly, placeholder }) => (
-          <div key={id} className="flex flex-col">
+        {fields.map(({ label, id, type, readOnly, placeholder, options }) => (
+          <div key={id} className={`flex flex-col ${type === 'leaveRecords' ? 'col-span-full' : ''}`}>
             <label htmlFor={id} className="block text-gray-300 font-medium mb-2">
               {label}
             </label>
@@ -321,7 +423,7 @@ const StudentForm = () => {
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
                   </>
-                ) : (
+                ) : id === "subject" ? (
                   <>
                     <option value="">Select a subject</option>
                     {subjects.map((subject) => (
@@ -330,6 +432,12 @@ const StudentForm = () => {
                       </option>
                     ))}
                   </>
+                ) : (
+                  options.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))
                 )}
               </select>
             ) : type === "date" ? (
@@ -340,6 +448,8 @@ const StudentForm = () => {
                 className="p-2 border border-gray-600 bg-gray-800 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
+            ) : type === "leaveRecords" ? (
+              <LeaveRecords />
             ) : (
               <input
                 type={type}

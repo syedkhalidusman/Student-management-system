@@ -124,6 +124,31 @@ const studentSchema = new mongoose.Schema(
       ref: 'Subject', // Assuming there is a 'Subject' model
       required: true,
     },
+    status: {
+      type: String,
+      enum: ['Active', 'Expelled', 'On Leave'],
+      default: 'Active'
+    },
+    expelledDate: {
+      type: Date,
+      required: function() {
+        return this.status === 'Expelled';
+      }
+    },
+    leaveRecords: [{
+      fromDate: {
+        type: Date,
+        required: function() {
+          return this.status === 'On Leave';
+        }
+      },
+      toDate: {
+        type: Date,
+        required: function() {
+          return this.status === 'On Leave';
+        }
+      }
+    }]
   },
   { timestamps: true }
 );

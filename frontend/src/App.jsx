@@ -18,7 +18,6 @@ import Department from "./pages/Department/Department";
 import ClassForm from "./pages/class/ClassForm";
 import ClassDetails from "./pages/class/ClassDetails";
 import Subjects from "./pages/Department/Subject";
-import StudentAttendanceList from "./pages/student/StudentAttendanceList";
 // import TeacherAttendanceForm from "./pages/teacher/TeacherAttendanceForm";
 // import TeacherAttendanceList from "./pages/teacher/TeacherAttendanceList";
 import AttendanceCalendar from './pages/student/AttendanceCalendar';
@@ -39,7 +38,6 @@ const App = () => {
         <Route path="student/add" element={<StudentForm />} />
         <Route path="student/list" element={<StudentList />} />
         <Route path="student-attendance-form" element={<StudentAttendanceForm/>} />
-        <Route path="student-attendance-List" element={<StudentAttendanceList />} />
         <Route path="/attendance-calendar" element={<AttendanceCalendar />} />
         <Route path="student/edit/:id" element={<StudentForm />} />
         <Route path="student/view/:id" element={<StudentDetails />} />

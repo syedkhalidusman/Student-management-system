@@ -7,6 +7,7 @@ import getDay from 'date-fns/getDay';
 import enUS from 'date-fns/locale/en-US';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import axios from 'axios';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const locales = {
   'en-US': enUS
@@ -39,73 +40,45 @@ const Dropdown = ({ label, options, value, onChange }) => (
 );
 
 const AttendanceCalendar = () => {
-  const [classes, setClasses] = useState([]);
-  const [selectedClass, setSelectedClass] = useState('');
-  const [students, setStudents] = useState([]);
-  const [selectedStudent, setSelectedStudent] = useState('');
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { studentId, studentName: initialStudentName } = location.state || {};
+  
+  const [selectedStudent, setSelectedStudent] = useState(studentId || '');
+  const [studentName, setStudentName] = useState(initialStudentName || '');
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [editingEvent, setEditingEvent] = useState(null);
 
+  // Redirect if no student is selected
   useEffect(() => {
-    axios.get('/api/classes')
-      .then(response => setClasses(response.data))
-      .catch(() => setError('Failed to fetch classes'));
-  }, []);
-
-  const handleClassChange = async (e) => {
-    const classId = e.target.value;
-    setSelectedClass(classId);
-    setSelectedStudent('');
-    setEvents([]);
-
-    if (classId) {
-      try {
-        const response = await axios.get(`/api/students?class=${classId}`);
-        setStudents(response.data);
-      } catch {
-        setError('Failed to fetch students');
-      }
-    } else {
-      setStudents([]);
+    if (!studentId) {
+      navigate('/student/list');
     }
-  };
+  }, [studentId, navigate]);
 
-  const formatEventTitle = (record) => {
-    const date = new Date(record.date);
-    const dayName = format(date, 'EEEE');
-    const formattedDate = format(date, 'dd/MM/yyyy');
-    return `${record.status} - ${dayName} ${formattedDate}`;
-  };
-
-  const fetchAttendance = async () => {
-    if (!selectedClass || !selectedStudent) {
-      setError('Please select both class and student');
-      return;
+  // Fetch attendance data when component mounts or student changes
+  useEffect(() => {
+    if (selectedStudent) {
+      fetchStudentAttendance(selectedStudent);
     }
+  }, [selectedStudent]);
 
+  const fetchStudentAttendance = async (id) => {
     setLoading(true);
     setError('');
+    setEvents([]);
 
     try {
-      const startDate = new Date();
-      startDate.setMonth(startDate.getMonth() - 1);
-      startDate.setDate(1);
-      
-      const endDate = new Date();
-      endDate.setMonth(endDate.getMonth() + 2, 0);
-
-      const response = await axios.get('/api/studentAttendance/by-date-range', {
-        params: {
-          classId: selectedClass,
-          studentId: selectedStudent,
-          startDate: startDate.toISOString(),
-          endDate: endDate.toISOString(),
-        },
+      const response = await axios.get('/api/studentAttendance/student-attendance', {
+        params: { studentId: id }
       });
 
-      const calendarEvents = response.data.map(record => ({
+      const { attendance, studentName } = response.data;
+      setStudentName(studentName);
+
+      const calendarEvents = attendance.map(record => ({
         id: record._id,
         title: formatEventTitle(record),
         start: new Date(record.date),
@@ -116,10 +89,34 @@ const AttendanceCalendar = () => {
 
       setEvents(calendarEvents);
     } catch (error) {
-      setError('Failed to fetch attendance records');
+      const message = error.response?.data?.message || 'Failed to fetch attendance records';
+      setError(message);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Handle back navigation
+  const handleBack = () => {
+    navigate(`/student/view/${selectedStudent}`);
+  };
+
+  const handleStudentChange = (e) => {
+    const id = e.target.value;
+    setSelectedStudent(id);
+    if (id) {
+      fetchStudentAttendance(id);
+    } else {
+      setEvents([]);
+      setStudentName('');
+    }
+  };
+
+  const formatEventTitle = (record) => {
+    const date = new Date(record.date);
+    const dayName = format(date, 'EEEE');
+    const formattedDate = format(date, 'dd/MM/yyyy');
+    return `${record.status} - ${dayName} ${formattedDate}`;
   };
 
   const eventStyleGetter = (event) => {
@@ -266,7 +263,10 @@ const AttendanceCalendar = () => {
         status: newStatus
       });
 
-      fetchAttendance();
+      // Call fetchStudentAttendance instead of fetchAttendance
+      if (selectedStudent) {
+        fetchStudentAttendance(selectedStudent);
+      }
       setEditingEvent(null);
     } catch (error) {
       setError('Failed to update attendance status');
@@ -325,55 +325,62 @@ const AttendanceCalendar = () => {
 
   return (
     <div className="max-w-6xl mx-auto bg-gray-900 text-white p-8 rounded-lg shadow">
-      <h1 className="text-2xl font-bold mb-6 text-center">Attendance Calendar</h1>
-      {error && <p className="text-red-500 mb-4">{error}</p>}
-
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <Dropdown
-          label="Class"
-          options={classes.map(cls => ({ label: cls.className, value: cls._id }))} 
-          value={selectedClass}
-          onChange={handleClassChange}
-        />
-        <Dropdown
-          label="Student"
-          options={students.map(student => ({ label: student.name, value: student._id }))} 
-          value={selectedStudent}
-          onChange={(e) => setSelectedStudent(e.target.value)}
-        />
+      <div className="flex justify-between items-center mb-6">
+        <button
+          onClick={handleBack}
+          className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded"
+        >
+          Back to Student Details
+        </button>
+        <h1 className="text-2xl font-bold">
+          Attendance Calendar
+          {studentName && ` - ${studentName}`}
+        </h1>
       </div>
 
-      <button
-        onClick={fetchAttendance}
-        className="w-full bg-blue-600 p-2 rounded hover:bg-blue-700 mb-6"
-        disabled={loading}
-      >
-        {loading ? 'Loading...' : 'Load Calendar'}
-      </button>
+      {/* Error Display */}
+      {error && (
+        <div className="text-center my-8 p-4 bg-gray-800 rounded-lg">
+          <p className="text-yellow-400 mb-2">{error}</p>
+        </div>
+      )}
 
-      <div className="bg-white rounded-lg p-4" style={{ height: '700px' }}>
-        <Calendar
-          localizer={localizer}
-          events={events}
-          startAccessor="start"
-          endAccessor="end"
-          style={{ height: '100%' }}
-          eventPropGetter={eventStyleGetter}
-          views={['month', 'week', 'day']}
-          defaultView="month"
-          onDoubleClickEvent={handleDoubleClick}
-          components={{
-            toolbar: CustomToolbar,
-            event: EventComponent
-          }}
-          formats={formats}
-          popup
-          tooltipAccessor={event => `Double click to edit\n${event.resource} - ${format(event.start, 'EEEE dd/MM/yyyy')}`}
-        />
-      </div>
+      {/* Loading State */}
+      {loading && (
+        <div className="text-center my-8">
+          <p className="text-blue-400">Loading attendance records...</p>
+        </div>
+      )}
+
+      {/* Calendar View */}
+      {!error && !loading && (
+        <div className="bg-white rounded-lg p-4" style={{ height: '700px' }}>
+          <Calendar
+            localizer={localizer}
+            events={events}
+            startAccessor="start"
+            endAccessor="end"
+            style={{ height: '100%' }}
+            eventPropGetter={eventStyleGetter}
+            views={['month', 'week', 'day']}
+            defaultView="month"
+            onDoubleClickEvent={handleDoubleClick}
+            components={{
+              toolbar: CustomToolbar,
+              event: EventComponent
+            }}
+            formats={formats}
+            popup
+            tooltipAccessor={event => 
+              `Double click to edit\n${event.resource} - ${format(event.start, 'EEEE dd/MM/yyyy')}`
+            }
+          />
+        </div>
+      )}
+
+      {/* Edit Modal */}
       <EditModal />
     </div>
-    
   );
 };
 

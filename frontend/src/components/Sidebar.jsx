@@ -90,12 +90,7 @@ const Sidebar = ({ isOpen }) => {
           icon: FaUsers,
         },
         {
-          name: "Student Attendance List",
-          url: "/student-attendance-list",
-          icon: FaUsers,
-        },
-        {
-          name: "/attendance calendar",
+          name: "attendance calendar",
           url: "/attendance-calendar",
           icon: FaUsers,
         },

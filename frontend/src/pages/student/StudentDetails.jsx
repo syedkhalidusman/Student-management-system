@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { format } from 'date-fns'; // For formatting dates
+import { FaCalendarAlt } from 'react-icons/fa'; // Add this import
 
 const StudentDetails = () => {
   const { id } = useParams(); // Extract the student ID from the URL
@@ -29,12 +30,73 @@ const StudentDetails = () => {
     navigate("/student/list"); // Navigate back to the student list
   };
 
+  const getStatusBadgeColor = (status) => {
+    switch (status) {
+      case 'Active':
+        return 'bg-green-500';
+      case 'Expelled':
+        return 'bg-red-500';
+      case 'On Leave':
+        return 'bg-yellow-500';
+      default:
+        return 'bg-gray-500';
+    }
+  };
+
+  const formatDate = (date) => {
+    return date ? format(new Date(date), 'MM/dd/yyyy') : "N/A";
+  };
+
+  const formatDateString = (dateString) => {
+    if (!dateString) return "N/A";
+    return format(new Date(dateString), 'dd/MM/yyyy');
+  };
+
+  // Add this function to format class details
+  const formatClassInfo = (classData) => {
+    if (!classData) return "N/A";
+    return (
+      <div>
+        <p className="text-white">{classData.className}</p>
+        <p className="text-sm text-gray-400">Shifts: {classData.shift.join(", ")}</p>
+      </div>
+    );
+  };
+
+  // Add this function to format subject details
+  const formatSubjectInfo = (subjectData) => {
+    if (!subjectData) return "N/A";
+    return (
+      <div>
+        <p className="text-white">{subjectData.subjectName}</p>
+        <p className="text-sm text-gray-400">{subjectData.description}</p>
+      </div>
+    );
+  };
+
+  const handleViewAttendance = () => {
+    navigate('/attendance-calendar', { 
+      state: { 
+        studentId: student._id,
+        classId: student.class?._id,
+        studentName: student.name 
+      } 
+    });
+  };
+
   if (loading) return <p className="text-white">Loading...</p>;
   if (error) return <p className="text-red-500">{error}</p>;
 
   return (
     <div className="w-full mx-auto bg-gray-900 text-white shadow-md rounded-lg p-6">
-      <h1 className="text-2xl font-bold mb-6">Student Details</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Student Details</h1>
+        {student?.status && (
+          <span className={`px-4 py-1 rounded-full text-white ${getStatusBadgeColor(student.status)}`}>
+            {student.status}
+          </span>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <DetailItem label="Student Name" value={student.name} />
@@ -63,6 +125,55 @@ const StudentDetails = () => {
         <DetailItem label="Class" value={student.class?.className || "N/A"} />
         <DetailItem label="Gender" value={student.gender} />
         <DetailItem label="Subject" value={student.subject?.subjectName || "N/A"} />
+
+        {/* Replace the Link with a button */}
+        <div className="col-span-full flex justify-center mb-4">
+          <button
+            onClick={handleViewAttendance}
+            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <FaCalendarAlt className="w-5 h-5 mr-2" />
+            View Attendance Calendar
+          </button>
+        </div>
+
+        {student?.status && (
+          <div className="col-span-full bg-gray-800 p-4 rounded-lg mt-4">
+            <h2 className="text-xl font-semibold mb-3">Status Information</h2>
+            <DetailItem label="Current Status" value={student.status} />
+            
+            {student.status === 'Expelled' && (
+              <DetailItem 
+                label="Expelled Date" 
+                value={formatDate(student.expelledDate)} 
+              />
+            )}
+
+            {student.status === 'On Leave' && student.leaveRecords?.length > 0 && (
+              <div className="col-span-full bg-gray-800 p-4 rounded-lg">
+                <h2 className="text-xl font-semibold mb-3">Leave Records</h2>
+                <div className="grid gap-2">
+                  {student.leaveRecords.map((record, index) => (
+                    <div key={record._id || index} className="bg-gray-700 p-3 rounded flex justify-between items-center">
+                      <div>
+                        <span className="text-gray-300">From: </span>
+                        <span className="text-white">{formatDateString(record.fromDate)}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-300">To: </span>
+                        <span className="text-white">{formatDateString(record.toDate)}</span>
+                      </div>
+                      <span className="text-sm text-gray-400">
+                        {/* Calculate duration */}
+                        ({Math.ceil((new Date(record.toDate) - new Date(record.fromDate)) / (1000 * 60 * 60 * 24))} days)
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="mt-6 flex justify-between">

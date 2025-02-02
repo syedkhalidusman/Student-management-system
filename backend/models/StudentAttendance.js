@@ -6,11 +6,6 @@ const studentAttendanceSchema = new mongoose.Schema({
     ref: 'Student',
     required: true,
   },
-  class: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Class',
-    required: true,
-  },
   date: {
     type: Date,
     required: true,
@@ -19,7 +14,7 @@ const studentAttendanceSchema = new mongoose.Schema({
     type: String,
     enum: ['Present', 'Absent', 'Unhealthy', 'Leave', 'Holiday'],
     required: true,
-  },
+  }
 });
 
 // Add compound index for student and date to ensure uniqueness

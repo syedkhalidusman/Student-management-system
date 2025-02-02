@@ -33,13 +33,33 @@ const StudentAttendanceList = () => {
   const [dateRangeStart, setDateRangeStart] = useState("");
   const [dateRangeEnd, setDateRangeEnd] = useState("");
   const [editingId, setEditingId] = useState(null);
+  const [studentSearch, setStudentSearch] = useState('');
+  const [allStudents, setAllStudents] = useState([]);
+  const [showClassFilter, setShowClassFilter] = useState(false);
 
   useEffect(() => {
+    // Fetch all students instead of classes first
     axios
-      .get("/api/classes")
-      .then((response) => setClasses(response.data))
-      .catch(() => setError("Failed to fetch classes."));
+      .get("/api/students")
+      .then((response) => {
+        setAllStudents(response.data);
+        // Group students by class for the class filter
+        const uniqueClasses = [...new Set(response.data.map(student => student.class?._id))];
+        setClasses(uniqueClasses.map(id => {
+          const classInfo = response.data.find(s => s.class?._id === id)?.class;
+          return classInfo ? { _id: classInfo._id, className: classInfo.className } : null;
+        }).filter(Boolean));
+      })
+      .catch(() => setError("Failed to fetch students."));
   }, []);
+
+  // Filter students based on search and class
+  const filteredStudents = allStudents.filter(student => {
+    const matchesSearch = student.name.toLowerCase().includes(studentSearch.toLowerCase()) ||
+                         student.roleNumber.toLowerCase().includes(studentSearch.toLowerCase());
+    const matchesClass = !selectedClass || student.class?._id === selectedClass;
+    return matchesSearch && matchesClass;
+  });
 
   const handleClassChange = async (e) => {
     const classId = e.target.value;
@@ -60,13 +80,8 @@ const StudentAttendanceList = () => {
   };
 
   const fetchAttendance = async () => {
-    if (!selectedClass || (!selectedStudent && (viewType === "single" || viewType === "studentRange"))) {
-      setError("Please select all required filters.");
-      return;
-    }
-
-    if ((viewType === "range" || viewType === "studentRange") && (!dateRangeStart || !dateRangeEnd)) {
-      setError("Please select both start and end dates.");
+    if (!selectedStudent && !selectedClass) {
+      setError("Please select a student or class.");
       return;
     }
 
@@ -74,28 +89,56 @@ const StudentAttendanceList = () => {
     setError("");
 
     try {
+      let response;
       if (viewType === "single") {
-        const response = await axios.get('/api/studentAttendance/by-student-class-date', {
-          params: {
-            classId: selectedClass,
-            studentId: selectedStudent,
-            date: selectedDate,
-          },
+        response = await axios.get('/api/studentAttendance/student-attendance', {
+          params: { studentId: selectedStudent }
         });
-        setAttendance(response.data ? [response.data] : []);
-      } else if (viewType === "range" || viewType === "studentRange") {
-        const response = await axios.get('/api/studentAttendance/by-date-range', {
-          params: {
-            classId: selectedClass,
-            studentId: viewType === "studentRange" ? selectedStudent : undefined,
-            startDate: dateRangeStart,
-            endDate: dateRangeEnd,
-          },
-        });
-        setAttendance(response.data || []);
+        setAttendance(response.data.attendance || []);
+      } else {
+        // Existing date range logic
+        if (!selectedClass || (!selectedStudent && (viewType === "single" || viewType === "studentRange"))) {
+          setError("Please select all required filters.");
+          return;
+        }
+    
+        if ((viewType === "range" || viewType === "studentRange") && (!dateRangeStart || !dateRangeEnd)) {
+          setError("Please select both start and end dates.");
+          return;
+        }
+    
+        setLoading(true);
+        setError("");
+    
+        try {
+          if (viewType === "single") {
+            const response = await axios.get('/api/studentAttendance/by-student-class-date', {
+              params: {
+                classId: selectedClass,
+                studentId: selectedStudent,
+                date: selectedDate,
+              },
+            });
+            setAttendance(response.data ? [response.data] : []);
+          } else if (viewType === "range" || viewType === "studentRange") {
+            const response = await axios.get('/api/studentAttendance/by-date-range', {
+              params: {
+                classId: selectedClass,
+                studentId: viewType === "studentRange" ? selectedStudent : undefined,
+                startDate: dateRangeStart,
+                endDate: dateRangeEnd,
+              },
+            });
+            setAttendance(response.data || []);
+          }
+        } catch (error) {
+          setError("Failed to fetch attendance.");
+        } finally {
+          setLoading(false);
+        }
       }
     } catch (error) {
-      setError("Failed to fetch attendance.");
+      setError(error.response?.data?.message || "Failed to fetch attendance records");
     } finally {
       setLoading(false);
     }
