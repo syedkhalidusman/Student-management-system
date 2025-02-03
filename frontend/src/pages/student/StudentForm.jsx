@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 
 const StudentForm = () => {
   const { id } = useParams(); // Get the student ID from the URL
@@ -18,7 +16,6 @@ const StudentForm = () => {
     currentAddress: "",
     permanentAddress: "",
     guardianName: "",
-    overbearingParenting: "",
     guardianAddress: "",
     guardianPhone: "",
     schoolHistory: "",
@@ -38,51 +35,85 @@ const StudentForm = () => {
   const [error, setError] = useState({});
   const [classes, setClasses] = useState([]); // To store class options
   const [subjects, setSubjects] = useState([]); // To store subject options
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const [optionsLoaded, setOptionsLoaded] = useState(false);
 
   useEffect(() => {
-    if (isEditing) {
-      // Fetch the student data
+    const loadData = async () => {
       setLoading(true);
-      axios
-        .get(`/api/students/${id}`)
-        .then((response) => {
-          setFormData(response.data); // Populate formData with the fetched student data
-          setLoading(false);
-        })
-        .catch((err) => {
-          console.error("Failed to fetch student data", err);
-          setError((prev) => ({ ...prev, general: "Failed to fetch student data. Please try again." }));
-          setLoading(false);
-        });
+      try {
+        // Load options first
+        const [classesRes, subjectsRes] = await Promise.all([
+          axios.get("/api/classes"),
+          axios.get("/api/subjects")
+        ]);
+        
+        setClasses(classesRes.data);
+        setSubjects(subjectsRes.data);
+        setOptionsLoaded(true);
+
+        // If editing, load student data
+        if (isEditing && id) {
+          const studentRes = await axios.get(`/api/students/${id}`);
+          const studentData = studentRes.data;
+          
+          // Ensure dates are properly formatted
+          if (studentData.dateOfBirth) {
+            studentData.dateOfBirth = new Date(studentData.dateOfBirth);
+          }
+          if (studentData.dateOfJoining) {
+            studentData.dateOfJoining = new Date(studentData.dateOfJoining);
+          }
+          
+          // Update the class and subject IDs to match the populated data
+          studentData.class = studentData.class?._id;
+          studentData.subject = studentData.subject?._id;
+          
+          setFormData(studentData);
+          setIsDataLoaded(true);
+        }
+      } catch (err) {
+        console.error("Failed to load data:", err);
+        setError((prev) => ({
+          ...prev,
+          general: "Failed to load form data"
+        }));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [id, isEditing]);
+
+  // Add new function to format CNIC
+  const formatCNIC = (value) => {
+    // Remove all non-digit characters
+    const digits = value.replace(/\D/g, '');
+    
+    // Format the string with hyphens
+    let formattedValue = '';
+    if (digits.length <= 5) {
+      formattedValue = digits;
+    } else if (digits.length <= 12) {
+      formattedValue = `${digits.slice(0, 5)}-${digits.slice(5)}`;
+    } else {
+      formattedValue = `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits.slice(12, 13)}`;
     }
 
-    // Fetch classes data for the select dropdown
-    axios
-      .get("/api/classes") // Assuming your API endpoint for fetching classes
-      .then((response) => {
-        setClasses(response.data); // Set the class options
-      })
-      .catch((err) => {
-        console.error("Failed to fetch classes", err);
-        setError((prev) => ({ ...prev, class: "Failed to fetch class data." }));
-      });
-
-    // Fetch subjects data for the select dropdown
-    axios
-      .get("/api/subjects") // Assuming your API endpoint for fetching subjects
-      .then((response) => {
-        setSubjects(response.data); // Set the subject options
-      })
-      .catch((err) => {
-        console.error("Failed to fetch subjects", err);
-        setError((prev) => ({ ...prev, subject: "Failed to fetch subject data." }));
-      });
-  }, [id, isEditing]);
+    return formattedValue;
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-    setError((prev) => ({ ...prev, [name]: "" }));
+    
+    if (name === 'fatherIdentityCard') {
+      const formattedValue = formatCNIC(value);
+      setFormData(prev => ({ ...prev, [name]: formattedValue }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
+    setError(prev => ({ ...prev, [name]: '' }));
   };
 
   const handleDateChange = (date, name) => {
@@ -248,14 +279,13 @@ const StudentForm = () => {
       currentAddress: `Street ${Math.floor(Math.random() * 100)}, City`,
       permanentAddress: `Street ${Math.floor(Math.random() * 100)}, City`,
       guardianName: `Guardian ${Math.floor(Math.random() * 1000)}`,
-      overbearingParenting: ["Yes", "No"][Math.floor(Math.random() * 2)],
       guardianAddress: `Guardian Street ${Math.floor(Math.random() * 100)}, City`,
-      guardianPhone: `03${Math.floor(Math.random() * 100000000)}`,
+      guardianPhone: `03${Math.floor(Math.random() * 1000000000)}`,
       schoolHistory: `Previous School ${Math.floor(Math.random() * 100)}`,
       lastSeminary: `Seminary ${Math.floor(Math.random() * 100)}`,
       dateOfJoining: new Date(),
       dateOfBirth: new Date(1990 + Math.floor(Math.random() * 20), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28)),
-      emergencyNumber: `03${Math.floor(Math.random() * 100000000)}`,
+      emergencyNumber: `03${Math.floor(Math.random() * 1000000000)}`,
       qualification: ["Matric", "Intermediate", "Bachelor"][Math.floor(Math.random() * 3)],
       gender: ["Male", "Female"][Math.floor(Math.random() * 2)],
     };
@@ -291,7 +321,6 @@ const StudentForm = () => {
     { label: "Current Address", id: "currentAddress", type: "text", placeholder: "Enter current address" },
     { label: "Permanent Address", id: "permanentAddress", type: "text", placeholder: "Enter permanent address" },
     { label: "Guardian Name", id: "guardianName", type: "text", placeholder: "Enter guardian name" },
-    { label: "Overbearing Parenting", id: "overbearingParenting", type: "text", placeholder: "Enter overbearing parenting" },
     { label: "Guardian Address", id: "guardianAddress", type: "text", placeholder: "Enter guardian address" },
     { label: "Guardian Phone", id: "guardianPhone", type: "text", placeholder: "Enter guardian phone" },
     { label: "School History", id: "schoolHistory", type: "text", placeholder: "Enter school history" },
@@ -335,19 +364,19 @@ const StudentForm = () => {
     <div className="space-y-4">
       {formData.leaveRecords.map((record, index) => (
         <div key={index} className="flex space-x-4 items-center">
-          <DatePicker
-            selected={record.fromDate ? new Date(record.fromDate) : null}
-            onChange={(date) => handleLeaveRecord(index, 'fromDate', date)}
-            dateFormat="yyyy-MM-dd"
-            className="p-2 border border-gray-600 bg-gray-800 rounded w-full"
-            placeholderText="From Date"
+          <input
+            type="date"
+            value={record.fromDate ? new Date(record.fromDate).toISOString().split('T')[0] : ''}
+            onChange={(e) => handleLeaveRecord(index, 'fromDate', new Date(e.target.value))}
+            className="p-2 border border-gray-600 bg-gray-800 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
           />
-          <DatePicker
-            selected={record.toDate ? new Date(record.toDate) : null}
-            onChange={(date) => handleLeaveRecord(index, 'toDate', date)}
-            dateFormat="yyyy-MM-dd"
-            className="p-2 border border-gray-600 bg-gray-800 rounded w-full"
-            placeholderText="To Date"
+          <input
+            type="date"
+            value={record.toDate ? new Date(record.toDate).toISOString().split('T')[0] : ''}
+            onChange={(e) => handleLeaveRecord(index, 'toDate', new Date(e.target.value))}
+            className="p-2 border border-gray-600 bg-gray-800 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
           />
           <button
             type="button"
@@ -376,19 +405,107 @@ const StudentForm = () => {
     </div>
   );
 
+  const renderSelect = (id, label, options) => {
+    if (!optionsLoaded) return null;
+
+    let selectOptions = [];
+    switch (id) {
+      case 'class':
+        selectOptions = classes.map(cls => ({
+          value: cls._id,
+          label: cls.className
+        }));
+        break;
+      case 'subject':
+        selectOptions = subjects.map(subj => ({
+          value: subj._id,
+          label: subj.subjectName
+        }));
+        break;
+      case 'gender':
+        selectOptions = [
+          { value: 'Male', label: 'Male' },
+          { value: 'Female', label: 'Female' }
+        ];
+        break;
+      default:
+        selectOptions = options || [];
+    }
+
+    return (
+      <select
+        id={id}
+        name={id}
+        value={formData[id] || ""}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        className="p-2 border border-gray-600 bg-gray-800 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+        required
+      >
+        <option value="">Select {label}</option>
+        {selectOptions.map((option) => (
+          <option 
+            key={option.value} 
+            value={option.value}
+          >
+            {option.label}
+          </option>
+        ))}
+      </select>
+    );
+  };
+
+  const renderInput = (type, id, placeholder, pattern, readOnly = false) => {
+    if (id === 'fatherIdentityCard') {
+      return (
+        <input
+          type="text"
+          id={id}
+          name={id}
+          value={formData[id] || ''}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          maxLength={15} // 13 digits + 2 hyphens
+          className="p-2 border border-gray-600 bg-gray-800 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder={placeholder}
+          required
+        />
+      );
+    }
+    
+    return (
+      <input
+        type={type}
+        id={id}
+        name={id}
+        value={formData[id] || ""}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        className="p-2 border border-gray-600 bg-gray-800 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+        readOnly={readOnly}
+        placeholder={placeholder}
+        required
+      />
+    );
+  };
+
   return (
     <div className="w-full mx-auto bg-gray-900 text-white shadow-md rounded-lg p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">{isEditing ? "Edit Student" : "Add New Student"}</h1>
-        <button
-          type="button"
-          onClick={generateRandomData}
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
-        >
-          Generate Random Data
-        </button>
+  
+        {/* Only show random data button in add mode */}
+        {!isEditing && (
+          <button
+            type="button"
+            onClick={generateRandomData}
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+          >
+            Generate Random Data
+          </button>
+        )}
       </div>
-
+  
       <form
         onSubmit={handleSubmit}
         className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
@@ -399,75 +516,25 @@ const StudentForm = () => {
               {label}
             </label>
             {type === "select" ? (
-              <select
-                id={id}
-                name={id}
-                value={formData[id] || ""}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                className="p-2 border border-gray-600 bg-gray-800 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              >
-                {id === "class" ? (
-                  <>
-                    <option value="">Select a class</option>
-                    {classes.map((cls) => (
-                      <option key={cls._id} value={cls._id}>
-                        {cls.className}
-                      </option>
-                    ))}
-                  </>
-                ) : id === "gender" ? (
-                  <>
-                    <option value="">Select gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                  </>
-                ) : id === "subject" ? (
-                  <>
-                    <option value="">Select a subject</option>
-                    {subjects.map((subject) => (
-                      <option key={subject._id} value={subject._id}>
-                        {subject.subjectName}
-                      </option>
-                    ))}
-                  </>
-                ) : (
-                  options.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))
-                )}
-              </select>
+              renderSelect(id, label, options)
             ) : type === "date" ? (
-              <DatePicker
-                selected={formData[id] ? new Date(formData[id]) : null}
-                onChange={(date) => handleDateChange(date, id)}
-                dateFormat="yyyy-MM-dd"
+              <input
+                type="date"
+                id={id}
+                value={formData[id] ? new Date(formData[id]).toISOString().split('T')[0] : ''}
+                onChange={(e) => handleDateChange(new Date(e.target.value), id)}
                 className="p-2 border border-gray-600 bg-gray-800 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
             ) : type === "leaveRecords" ? (
               <LeaveRecords />
             ) : (
-              <input
-                type={type}
-                id={id}
-                name={id}
-                value={formData[id] || ""}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                className="p-2 border border-gray-600 bg-gray-800 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                readOnly={readOnly}
-                placeholder={placeholder}
-                required
-              />
+              renderInput(type, id, placeholder, null, readOnly)
             )}
             {error[id] && <p className="text-red-500 mt-1">{error[id]}</p>}
           </div>
         ))}
-
+  
         <div className="col-span-full flex justify-between mt-4">
           <button
             type="button"

@@ -56,11 +56,6 @@ const studentSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    overbearingParenting: {
-      type: String,
-      required: true,
-      trim: true,
-    },
     guardianAddress: {
       type: String,
       required: true,
@@ -71,9 +66,10 @@ const studentSchema = new mongoose.Schema(
       required: true,
       validate: {
         validator: function (v) {
-          return /\d{10}/.test(v); // Example validation for phone number
+          // Updated validation to accept numbers starting with 03 and having 11 digits
+          return /^03\d{9}$/.test(v);
         },
-        message: (props) => `${props.value} is not a valid phone number!`,
+        message: props => `${props.value} is not a valid phone number! Format should be: 03XXXXXXXXX`
       },
     },
     schoolHistory: {
@@ -99,9 +95,10 @@ const studentSchema = new mongoose.Schema(
       required: true,
       validate: {
         validator: function (v) {
-          return /^\+?\d{10,13}$/.test(v);  // International phone number validation
+          // Updated validation to accept numbers starting with 03 and having 11 digits
+          return /^03\d{9}$/.test(v);
         },
-        message: (props) => `${props.value} is not a valid phone number!`,
+        message: props => `${props.value} is not a valid phone number! Format should be: 03XXXXXXXXX`
       },
     },
     qualification: {
