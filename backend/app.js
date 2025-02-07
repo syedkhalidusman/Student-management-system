@@ -39,3 +39,5 @@ app.use('/api/auth', userRoutes); // Add this line to ensure correct routing
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+export default app;

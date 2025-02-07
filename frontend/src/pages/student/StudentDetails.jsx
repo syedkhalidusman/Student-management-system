@@ -1,18 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
-import { format } from 'date-fns'; // For formatting dates
-import { FaCalendarAlt } from 'react-icons/fa'; // Add this import
+import { format } from 'date-fns'; 
+import { FaCalendarAlt } from 'react-icons/fa'; 
 
 const StudentDetails = () => {
-  const { id } = useParams(); // Extract the student ID from the URL
-  const navigate = useNavigate(); // For navigation
-  const [student, setStudent] = useState(null); // Student data
-  const [loading, setLoading] = useState(true); // Loading state
-  const [error, setError] = useState(""); // Error state
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [student, setStudent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    // Fetch student data by ID
     axios
       .get(`/api/students/${id}`)
       .then((response) => {
@@ -27,7 +26,7 @@ const StudentDetails = () => {
   }, [id]);
 
   const handleBack = () => {
-    navigate("/student/list"); // Navigate back to the student list
+    navigate("/student/list");
   };
 
   const getStatusBadgeColor = (status) => {
@@ -47,12 +46,6 @@ const StudentDetails = () => {
     return date ? format(new Date(date), 'MM/dd/yyyy') : "N/A";
   };
 
-  const formatDateString = (dateString) => {
-    if (!dateString) return "N/A";
-    return format(new Date(dateString), 'dd/MM/yyyy');
-  };
-
-  // Add this function to format class details
   const formatClassInfo = (classData) => {
     if (!classData) return "N/A";
     return (
@@ -63,7 +56,6 @@ const StudentDetails = () => {
     );
   };
 
-  // Add this function to format subject details
   const formatSubjectInfo = (subjectData) => {
     if (!subjectData) return "N/A";
     return (
@@ -104,7 +96,7 @@ const StudentDetails = () => {
         <DetailItem label="Registration Number" value={student.registrationNumber} />
         <DetailItem label="Age" value={student.age} />
         <DetailItem label="Father's ID Number" value={student.fatherIdentityCard} />
-        <DetailItem label="Homeland" value={student.homeland} />
+        <DetailItem label="Homeland" value={student.Country} />
         <DetailItem label="Current Address" value={student.currentAddress} />
         <DetailItem label="Permanent Address" value={student.permanentAddress} />
         <DetailItem label="Guardian Name" value={student.guardianName} />
@@ -126,7 +118,6 @@ const StudentDetails = () => {
         <DetailItem label="Gender" value={student.gender} />
         <DetailItem label="Subject" value={student.subject?.subjectName || "N/A"} />
 
-        {/* Replace the Link with a button */}
         <div className="col-span-full flex justify-center mb-4">
           <button
             onClick={handleViewAttendance}
@@ -164,7 +155,6 @@ const StudentDetails = () => {
                         <span className="text-white">{formatDateString(record.toDate)}</span>
                       </div>
                       <span className="text-sm text-gray-400">
-                        {/* Calculate duration */}
                         ({Math.ceil((new Date(record.toDate) - new Date(record.fromDate)) / (1000 * 60 * 60 * 24))} days)
                       </span>
                     </div>
@@ -176,30 +166,54 @@ const StudentDetails = () => {
         )}
       </div>
 
-      <div className="mt-6 flex justify-between">
-        <Link
-          to={`/student/edit/${student._id}`}
-          className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded"
-        > 
-          Edit
-        </Link>
-        <Link
-          to="/student/list"
-          className="text-blue-400 hover:underline mt-4"
+      {student?.hasStipend && (
+        <div className="bg-gray-800 p-4 rounded-lg mt-4">
+          <h2 className="text-xl font-semibold mb-3">Stipend Information</h2>
+          <DetailItem label="Stipend Status" value={student.hasStipend ? "Yes" : "No"} />
+          <DetailItem label="Stipend Amount" value={student.stipendAmount} />
+          {student.stipendHistory && student.stipendHistory.length > 0 && (
+            <>
+              <h3 className="text-lg font-semibold mt-3">Stipend History</h3>
+              <table className="w-full table-auto border-collapse border border-gray-600">
+                <thead>
+                  <tr className="bg-gray-700">
+                    <th className="border border-gray-600 p-2">Amount</th>
+                    <th className="border border-gray-600 p-2">Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {student.stipendHistory.map((record, index) => (
+                    <tr key={index} className="hover:bg-gray-700">
+                      <td className="border border-gray-600 p-2">{record.amount}</td>
+                      <td className="border border-gray-600 p-2">{formatDate(record.date)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          )}
+        </div>
+      )}
+      
+      <div className="mt-6">
+        <button
+          onClick={handleBack}
+          className="inline-flex items-center px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-colors"
         >
-          Back to Student List
-        </Link>
+          Go Back to Student List
+        </button>
       </div>
     </div>
   );
 };
 
-// Component to display individual detail items
-const DetailItem = ({ label, value }) => (
-  <div>
-    <p className="text-gray-400 font-medium">{label}</p>
-    <p className="text-white">{value || "N/A"}</p>
-  </div>
-);
+const DetailItem = ({ label, value }) => {
+  return (
+    <div className="flex justify-between bg-gray-800 p-4 rounded-lg shadow-md mb-3">
+      <span className="text-gray-300">{label}</span>
+      <span className="text-white">{value || "N/A"}</span>
+    </div>
+  );
+};
 
 export default StudentDetails;

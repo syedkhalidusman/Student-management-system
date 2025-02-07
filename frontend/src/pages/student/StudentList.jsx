@@ -46,7 +46,15 @@ const StudentList = () => {
 
   return (
     <div className="w-full mx-auto bg-gray-900 text-white shadow-md rounded-lg p-6 mt-8">
-      <h1 className="text-2xl font-bold mb-6">Student List</h1>
+      <div className="flex justify-between mb-4">
+        <h1 className="text-2xl font-bold">Student List</h1>
+        <Link 
+          to="/student/add" 
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+          Add New Student
+        </Link>
+      </div>
 
       {errorMessage && (
         <div className="bg-red-700 text-red-100 p-4 mb-4 rounded">{errorMessage}</div>
@@ -68,7 +76,7 @@ const StudentList = () => {
           <tbody>
             {filteredStudents.length > 0 ? (
               filteredStudents.map((student, index) => (
-                <tr key={student._id} className="hover:bg-gray-700"><td className="border border-gray-600 p-2 text-center">{index + 1}</td><td className="border border-gray-600 p-2">{student.name}</td><td className="border border-gray-600 p-2">{student.guardianName}</td><td className="border border-gray-600 p-2">{student.roleNumber}</td><td className="border border-gray-600 p-2 text-center"><Link to={`/student/view/${student._id}`} className="text-green-400 hover:underline mr-4">View</Link><Link to={`/student/edit/${student._id}`} className="text-blue-400 hover:underline mr-4">Edit</Link><button onClick={() => handleDelete(student._id)} className="text-red-400 hover:underline">Delete</button></td></tr>
+                <tr key={student._id} className="hover:bg-gray-700"><td className="border border-gray-600 p-2 text-center">{index + 1}</td><td className="border border-gray-600 p-2">{student.name}</td><td className="border border-gray-600 p-2">{student.guardianName}</td><td className="border border-gray-600 p-2">{student.roleNumber}</td><td className="border border-gray-600 p-2 text-center"><div className="flex gap-2"><Link to={`/student/view/${student._id}`} className="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600">View</Link><Link to={`/student/edit/${student._id}`} className="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600">Edit</Link><button onClick={() => handleDelete(student._id)} className="text-red-400 hover:underline">Delete</button></div></td></tr>
               ))
             ) : (
               <tr><td colSpan="5" className="border border-gray-600 p-4 text-center">No students found.</td></tr>

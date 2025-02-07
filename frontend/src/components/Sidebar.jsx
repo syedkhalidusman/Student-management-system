@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from 'react-router-dom';
 import {
   FaUsers,
   FaUserPlus,
@@ -29,11 +30,17 @@ const Sidebar = ({ isOpen }) => {
       name: "Student",
       icon: FaUsers,
       submenu: [
-        { name: "Add Student", url: "/student/add", icon: FaUserPlus },
+        { 
+          name: "Add Student", 
+          url: "/student/add", 
+          icon: FaUserPlus,
+          component: Link 
+        },
         {
           name: "Student List",
           url: "/student/list",
           icon: FaUsers,
+          component: Link
         },
       ],
     },
