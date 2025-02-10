@@ -11,15 +11,16 @@ import TeacherForm from "./pages/teacher/TeacherForm";
 import TeacherList from "./pages/teacher/TeacherList";
 import TeacherDetails from "./pages/teacher/TeacherDetails";
 import StudentAttendanceForm from "./pages/student/StudentAttendanceForm";
-import ClassList from "./pages/class&Departments/ClassList";
-import Department from "./pages/class&Departments/Department";
-import ClassForm from "./pages/class&Departments/ClassForm";
-import ClassDetails from "./pages/class&Departments/ClassDetails";
-import Subjects from "./pages/class&Departments/Subject";
+import ClassList from "./pages/class/ClassList";
+import ClassForm from "./pages/class/ClassForm";
+import ClassDetails from "./pages/class/ClassDetails";
+import Department from "./pages/other/Department";
+import Subjects from "./pages/other/Subject";
 import AttendanceCalendar from './pages/student/AttendanceCalendar';
 import AddStudentForm from "./pages/student/AddStudentForm";
 import EditStudentForm from "./pages/student/EditStudentForm";
 import ErrorBoundary from './components/ErrorBoundary';
+import Stipend from "./pages/other/Stipend"; // Fix the import path
 
 const App = () => {
   return (
@@ -55,10 +56,13 @@ const App = () => {
           <Route path="class/view/:id" element={<ClassDetails />} />
 
           {/* Department Route */}
-          <Route path="add-department" element={<Department />} />
+          <Route path="department" element={<Department />} />
 
           {/* Subject Route */}
-          <Route path="add-subject" element={<Subjects />} />
+          <Route path="subject" element={<Subjects />} />
+          
+          {/* Stipend Route - Updated import path */}
+          <Route path="/stipend" element={<Stipend />} />
         </Route>
 
         {/* Fallback Route for Undefined Paths */}

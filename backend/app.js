@@ -7,6 +7,7 @@ import departmentRoutes from './routes/departmentRoutes.js';
 import subjectRoutes from './routes/subjectRoutes.js';
 import userRoutes  from './routes/authRoutes.js'; // Ensure correct path
 import studentAttendanceRoutes from './routes/StudentAttendanceRoutes.js';
+import stipendRoutes from './routes/stipendRoutes.js'; // Add this import
 
 import cors from 'cors';
 
@@ -33,8 +34,8 @@ app.use('/api/classes', classRoutes);
 app.use('/api/departments', departmentRoutes);
 app.use('/api/subjects', subjectRoutes);// Ensure the auth routes are included as well
 app.use('/api/studentAttendance', studentAttendanceRoutes); // Add attendance routes
-
 app.use('/api/auth', userRoutes); // Add this line to ensure correct routing
+app.use('/api/stipends', stipendRoutes); // Add this line for stipend routes
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

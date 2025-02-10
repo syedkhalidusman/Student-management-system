@@ -148,11 +148,11 @@ const StudentDetails = () => {
                     <div key={record._id || index} className="bg-gray-700 p-3 rounded flex justify-between items-center">
                       <div>
                         <span className="text-gray-300">From: </span>
-                        <span className="text-white">{formatDateString(record.fromDate)}</span>
+                        <span className="text-white">{formatDate(record.fromDate)}</span>
                       </div>
                       <div>
                         <span className="text-gray-300">To: </span>
-                        <span className="text-white">{formatDateString(record.toDate)}</span>
+                        <span className="text-white">{formatDate(record.toDate)}</span>
                       </div>
                       <span className="text-sm text-gray-400">
                         ({Math.ceil((new Date(record.toDate) - new Date(record.fromDate)) / (1000 * 60 * 60 * 24))} days)

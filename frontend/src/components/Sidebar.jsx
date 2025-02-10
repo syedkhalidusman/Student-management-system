@@ -77,13 +77,16 @@ const Sidebar = ({ isOpen }) => {
       icon: HiIdentification,
       submenu: [
         { name: "Add Class", url: "/class/add", icon: FaUserPlus }, // Corrected path
-        {
-          name: "Add Department",
-          url: "/add-department",
-          icon: BsBuildingFillAdd,
-        },
-        { name: "Add Subject", url: "/add-subject", icon: BsBuildingFill }, // Corrected path
         { name: "Class List", url: "/class/list", icon: BsBuildingFill }, // Corrected path
+      ],
+    },
+    {
+      name: "other",
+      icon: HiIdentification,
+      submenu: [
+        { name: "Department", url: "/department", icon: BsBuildingFillAdd },
+        { name: "Subject", url: "/subject", icon: BsBuildingFill },
+        { name: "Stipend", url: "/stipend", icon: BsBuildingFill }, // Update to lowercase
       ],
     },
 
