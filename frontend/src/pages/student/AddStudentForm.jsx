@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import axiosInstance from '../../config/axios'; // Update import
+// import axiosInstance from '../../config/axios'; // Update import
+import axios from 'axios';
 import { BasicInformationSection } from './sections/BasicInformationSection';
 import { ContactInformationSection } from './sections/ContactInformationSection';
 import { AcademicInformationSection } from './sections/AcademicInformationSection';
@@ -70,7 +71,8 @@ const AddStudentForm = () => {
 
       console.log('Submitting data:', dataToSubmit); // Debug log
 
-      const response = await axiosInstance.post('/api/students', dataToSubmit);
+      // const response = await axiosInstance.post('/api/students', dataToSubmit);
+      const response = await axios.post('/api/students', dataToSubmit);
       
       if (response.status === 201) {
         navigate('/student/list');

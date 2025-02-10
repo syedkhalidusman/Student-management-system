@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import axiosInstance from '../../../config/axios';
+import axios from 'axios';
 import { renderInput, renderSelect } from '../../../components/student/shared/FormFields';
 
 export const AcademicInformationSection = ({ formData, setFormData, error }) => {
@@ -12,8 +12,8 @@ export const AcademicInformationSection = ({ formData, setFormData, error }) => 
     const fetchData = async () => {
       try {
         const [classesRes, subjectsRes] = await Promise.all([
-          axiosInstance.get('/api/classes'),
-          axiosInstance.get('/api/subjects')
+          axios.get('/api/classes'),
+          axios.get('/api/subjects')
         ]);
         setClasses(classesRes.data);
         setSubjects(subjectsRes.data);
