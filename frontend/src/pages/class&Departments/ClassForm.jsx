@@ -1,128 +1,118 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 
 const ClassForm = () => {
-  const { id } = useParams();  // Get class ID from URL if editing
-  const navigate = useNavigate();  // For navigation
-  const isEditing = Boolean(id);  // Check if it's edit mode or add mode
-
+  const navigate = useNavigate();
+  const { id } = useParams();
   const [formData, setFormData] = useState({
     className: '',
     teacher: '',
     department: '',
-    shift: [],
+    shift: []
   });
-
   const [teachers, setTeachers] = useState([]);
   const [departments, setDepartments] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const shifts = ['Morning', 'Evening', 'Night', 'Late Night'];
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const teacherRes = await axios.get('/api/teachers');
-        const departmentRes = await axios.get('/api/departments');
-        setTeachers(teacherRes.data || []);
-        setDepartments(departmentRes.data || []);
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching data', err);
-        setError('Failed to fetch data. Please try again later.');
-        setLoading(false);
-      }
-    };
-
-    if (isEditing) {
-      // Fetch class data for editing
-      axios
-        .get(`/api/classes/${id}`)
-        .then((response) => {
-          setFormData(response.data);
-          setLoading(false);
-        })
-        .catch((err) => {
-          console.error('Failed to fetch class data', err);
-          setError('Failed to fetch class data. Please try again.');
-          setLoading(false);
-        });
-    } else {
-      fetchData();  // Only fetch teacher and department data on add mode
+    fetchTeachersAndDepartments();
+    if (id) {
+      fetchClassDetails();
     }
-  }, [id, isEditing]);
+  }, [id]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+  const fetchTeachersAndDepartments = async () => {
+    try {
+      const [teachersRes, departsRes] = await Promise.all([
+        axios.get('/api/teachers'),
+        axios.get('/api/departments')
+      ]);
+      setTeachers(teachersRes.data);
+      setDepartments(departsRes.data);
+    } catch (error) {
+      setError('Failed to fetch data');
+    }
   };
 
-  const handleShiftChange = (e) => {
-    const { value, checked } = e.target;
-    if (checked) {
-      setFormData({ ...formData, shift: [...formData.shift, value] });
-    } else {
-      setFormData({ ...formData, shift: formData.shift.filter(s => s !== value) });
+  const fetchClassDetails = async () => {
+    try {
+      const response = await axios.get(`/api/classes/${id}`);
+      setFormData(response.data);
+    } catch (error) {
+      setError('Failed to fetch class details');
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
-      const endpoint = isEditing
-        ? `/api/classes/${id}`
-        : '/api/classes';
-      const method = isEditing ? axios.put : axios.post;
-
-      const response = await method(endpoint, formData);
-
-      if (response.status === (isEditing ? 200 : 201)) {
-        alert(isEditing ? 'Class updated successfully!' : 'Class added successfully!');
-        navigate('/class/list');
+      if (id) {
+        await axios.put(`/api/classes/${id}`, formData);
+      } else {
+        await axios.post('/api/classes', formData);
       }
-    } catch (err) {
-      alert('Failed to save class. Please try again.');
+      navigate('/class/list');
+    } catch (error) {
+      setError('Failed to save class');
     }
   };
 
-  const handleBack = () => {
-    navigate('/class/list');
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p className="text-red-500">{error}</p>;
+  const handleShiftChange = (shift) => {
+    setFormData(prev => ({
+      ...prev,
+      shift: prev.shift.includes(shift)
+        ? prev.shift.filter(s => s !== shift)
+        : [...prev.shift, shift]
+    }));
+  };
 
   return (
-    <div className="w-full mx-auto bg-gray-900 text-white shadow-md rounded-lg p-6">
-      <h1 className="text-2xl font-bold mb-6">{isEditing ? 'Edit Class' : 'Add New Class'}</h1>
+    <div className="max-w-2xl mx-auto p-4">
+      <h2 className="text-2xl font-bold mb-4">
+        {id ? 'Edit Class' : 'Add New Class'}
+      </h2>
+      
+      {error && (
+        <div className="bg-red-100 text-red-700 p-3 rounded mb-4">
+          {error}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Class Name */}
         <div>
-          <label className="block text-gray-300 mb-2">Class Name</label>
+          <label className="block mb-1">Class Name</label>
           <input
             type="text"
             name="className"
             value={formData.className}
             onChange={handleChange}
-            className="w-full p-2 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border rounded p-2"
             required
           />
         </div>
 
-        {/* Teacher */}
         <div>
-          <label className="block text-gray-300 mb-2">Teacher</label>
+          <label className="block mb-1">Teacher</label>
           <select
             name="teacher"
             value={formData.teacher}
             onChange={handleChange}
-            className="w-full p-2 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border rounded p-2"
             required
           >
             <option value="">Select Teacher</option>
-            {teachers.map((teacher) => (
+            {teachers.map(teacher => (
               <option key={teacher._id} value={teacher._id}>
                 {teacher.name}
               </option>
@@ -130,18 +120,17 @@ const ClassForm = () => {
           </select>
         </div>
 
-        {/* Department */}
         <div>
-          <label className="block text-gray-300 mb-2">Department</label>
+          <label className="block mb-1">Department</label>
           <select
             name="department"
             value={formData.department}
             onChange={handleChange}
-            className="w-full p-2 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border rounded p-2"
             required
           >
             <option value="">Select Department</option>
-            {departments.map((dept) => (
+            {departments.map(dept => (
               <option key={dept._id} value={dept._id}>
                 {dept.departmentName}
               </option>
@@ -149,34 +138,29 @@ const ClassForm = () => {
           </select>
         </div>
 
-        {/* Shifts */}
         <div>
-          <label className="block text-gray-300 mb-2">Shifts</label>
-          <div className="space-x-4">
-            {['Morning', 'Evening', 'Night', 'Late Night'].map((shift) => (
+          <label className="block mb-1">Shifts</label>
+          <div className="space-y-2">
+            {shifts.map(shift => (
               <label key={shift} className="flex items-center">
                 <input
                   type="checkbox"
-                  name="shift"
-                  value={shift}
                   checked={formData.shift.includes(shift)}
-                  onChange={handleShiftChange}
-                  className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                  onChange={() => handleShiftChange(shift)}
+                  className="mr-2"
                 />
-                <span className="ml-2">{shift}</span>
+                {shift}
               </label>
             ))}
           </div>
         </div>
 
-        <div className="flex justify-between mt-4">
-          <button type="button" onClick={handleBack} className="bg-gray-600 text-white p-2 rounded">
-            Back
-          </button>
-          <button type="submit" className="bg-blue-600 text-white p-2 rounded">
-            {isEditing ? 'Update Class' : 'Add Class'}
-          </button>
-        </div>
+        <button
+          type="submit"
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+          {id ? 'Update Class' : 'Add Class'}
+        </button>
       </form>
     </div>
   );
