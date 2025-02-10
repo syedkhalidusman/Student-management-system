@@ -195,13 +195,19 @@ const StudentDetails = () => {
         </div>
       )}
       
-      <div className="mt-6">
+      <div className="mt-6 flex gap-4">
         <button
           onClick={handleBack}
           className="inline-flex items-center px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-colors"
         >
           Go Back to Student List
         </button>
+        <Link
+          to={`/student/edit/${student._id}`}
+          className="inline-flex items-center px-6 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
+        >
+          Edit Student
+        </Link>
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 
 const ClassDetails = () => {
@@ -132,13 +132,19 @@ const ClassDetails = () => {
         />
       </div>
 
-      <div className="mt-6">
+      <div className="mt-6 flex gap-4">
         <button
           onClick={handleBack}
           className="inline-flex items-center px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-colors"
         >
           Go Back to Class List
         </button>
+        <Link
+          to={`/class/edit/${id}`}
+          className="inline-flex items-center px-6 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
+        >
+          Edit Class
+        </Link>
       </div>
     </div>
   );
