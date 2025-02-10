@@ -81,12 +81,12 @@ const Sidebar = ({ isOpen }) => {
       ],
     },
     {
-      name: "other",
+      name: "other", // Changed "class" to "Class"
       icon: HiIdentification,
       submenu: [
-        { name: "Department", url: "/department", icon: BsBuildingFillAdd },
-        { name: "Subject", url: "/subject", icon: BsBuildingFill },
-        { name: "Stipend", url: "/stipend", icon: BsBuildingFill }, // Update to lowercase
+        { name: "Department", url: "/department", icon: BsBuildingFillAdd, },
+        { name: "Subject", url: "/subject", icon: BsBuildingFill }, // Corrected path
+        { name: "Stipend", url: "/Stipend", icon: BsBuildingFill }, // Corrected path
       ],
     },
 

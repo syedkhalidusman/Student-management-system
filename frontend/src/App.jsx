@@ -15,7 +15,7 @@ import ClassList from "./pages/class/ClassList";
 import ClassForm from "./pages/class/ClassForm";
 import ClassDetails from "./pages/class/ClassDetails";
 import Department from "./pages/other/Department";
-import Subjects from "./pages/other/Subject";
+import Subject from "./pages/other/Subject"; // Changed from Department
 import AttendanceCalendar from './pages/student/AttendanceCalendar';
 import AddStudentForm from "./pages/student/AddStudentForm";
 import EditStudentForm from "./pages/student/EditStudentForm";
@@ -59,7 +59,7 @@ const App = () => {
           <Route path="department" element={<Department />} />
 
           {/* Subject Route */}
-          <Route path="subject" element={<Subjects />} />
+          <Route path="/subject" element={<Subject />} />
           
           {/* Stipend Route - Updated import path */}
           <Route path="/stipend" element={<Stipend />} />

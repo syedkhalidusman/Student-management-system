@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-// import axiosInstance from '../../config/axios'; // Update import
 import axios from 'axios';
 import { BasicInformationSection } from './sections/BasicInformationSection';
 import { ContactInformationSection } from './sections/ContactInformationSection';
 import { AcademicInformationSection } from './sections/AcademicInformationSection';
-import { StipendSection } from './sections/StipendSection';
 
 const AddStudentForm = () => {
   const navigate = useNavigate();
@@ -33,9 +31,6 @@ const AddStudentForm = () => {
     gender: '',
     subject: '',
     status: 'Active',
-    hasStipend: false,
-    stipendAmount: '',
-    stipendHistory: []
   });
   const [error, setError] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -65,13 +60,11 @@ const AddStudentForm = () => {
         ...formData,
         age: parseInt(formData.age),
         dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth).toISOString() : undefined,
-        dateOfJoining: formData.dateOfJoining ? new Date(formData.dateOfJoining).toISOString() : undefined,
-        stipendAmount: formData.hasStipend ? parseFloat(formData.stipendAmount) : 0
+        dateOfJoining: formData.dateOfJoining ? new Date(formData.dateOfJoining).toISOString() : undefined
       };
 
       console.log('Submitting data:', dataToSubmit); // Debug log
 
-      // const response = await axiosInstance.post('/api/students', dataToSubmit);
       const response = await axios.post('/api/students', dataToSubmit);
       
       if (response.status === 201) {
@@ -131,13 +124,8 @@ const AddStudentForm = () => {
           formData={formData}
           setFormData={setFormData}
           error={error}
-        />
+        /> 
 
-        <StipendSection 
-          formData={formData}
-          setFormData={setFormData}
-          error={error}
-        />
 
         <div className="flex justify-between pt-6">
           <button

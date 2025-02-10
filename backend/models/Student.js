@@ -8,7 +8,7 @@ const studentSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    fatherName: {  // Added new field
+    fatherName: {
       type: String,
       required: true,
       trim: true,
@@ -16,27 +16,26 @@ const studentSchema = new mongoose.Schema(
     roleNumber: {
       type: String,
       required: true,
-      unique: true, 
+      unique: true,
       trim: true,
-      index: true // Explicitly add index
+      index: true
     },
     registrationNumber: {
       type: String,
       required: true,
       unique: true,
       trim: true,
-      index: true // Explicitly add index
+      index: true
     },
     fatherIdentityCard: {
       type: String,
       required: true,
-      unique: false, // Explicitly set to false
       validate: {
         validator: function (v) {
-          return /^\d{5}-\d{7}-\d{1}$/.test(v);  // Only format validation
+          return /^\d{5}-\d{7}-\d{1}$/.test(v);
         },
         message: (props) => `${props.value} is not a valid CNIC format!`,
-      }, 
+      },
     },
     Country: {
       type: String,
@@ -68,7 +67,6 @@ const studentSchema = new mongoose.Schema(
       required: true,
       validate: {
         validator: function (v) {
-          // Updated validation to accept numbers starting with 03 and having 11 digits
           return /^03\d{9}$/.test(v);
         },
         message: props => `${props.value} is not a valid phone number! Format should be: 03XXXXXXXXX`
@@ -97,7 +95,6 @@ const studentSchema = new mongoose.Schema(
       required: true,
       validate: {
         validator: function (v) {
-          // Updated validation to accept numbers starting with 03 and having 11 digits
           return /^03\d{9}$/.test(v);
         },
         message: props => `${props.value} is not a valid phone number! Format should be: 03XXXXXXXXX`
@@ -110,7 +107,7 @@ const studentSchema = new mongoose.Schema(
     },
     class: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Class', // Assuming there is a 'Class' model
+      ref: 'Class',
       required: true,
     },
     gender: {
@@ -120,7 +117,7 @@ const studentSchema = new mongoose.Schema(
     },
     subject: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Subject', // Assuming there is a 'Subject' model
+      ref: 'Subject',
       required: true,
     },
     status: {
@@ -147,12 +144,21 @@ const studentSchema = new mongoose.Schema(
           return this.status === 'On Leave';
         }
       }
-    }]
+    }],
+    stipendId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Stipend',
+      default: null
+    },
+    hasStipend: {
+      type: Boolean,
+      default: false
+    },
   },
-  { 
+  {
     timestamps: true,
-    toJSON: { virtuals: true }, // Enable virtuals when converting to JSON
-    toObject: { virtuals: true } // Enable virtuals when converting to object
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
   }
 );
 
@@ -173,28 +179,12 @@ studentSchema.virtual('age').get(function() {
   const birthDate = new Date(this.dateOfBirth);
   let age = today.getFullYear() - birthDate.getFullYear();
   const monthDiff = today.getMonth() - birthDate.getMonth();
-  
+
   if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
     age--;
   }
-  
-  return age;
-});
 
-// Add new fields for stipend
-studentSchema.add({
-  hasStipend: {
-    type: Boolean,
-    default: false
-  },
-  stipendAmount: {
-    type: Number,
-    default: 0
-  },
-  stipendHistory: [{
-    amount: Number,
-    date: Date
-  }]
+  return age;
 });
 
 // Create a model using the schema

@@ -2,12 +2,10 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { renderInput, renderSelect } from '../../components/student/shared/FormFields';
 import { BasicInformationSection } from './sections/BasicInformationSection';
 import { ContactInformationSection } from './sections/ContactInformationSection';
 import { AcademicInformationSection } from './sections/AcademicInformationSection';
 import { StatusSection } from './sections/StatusSection';
-import { StipendSection } from './sections/StipendSection';
 
 const EditStudentForm = () => {
   const { id } = useParams();
@@ -34,9 +32,6 @@ const EditStudentForm = () => {
     gender: '',
     subject: '',
     status: 'Active',
-    hasStipend: false,
-    stipendAmount: '',
-    stipendHistory: [],
     leaveRecords: []
   });
   const [loading, setLoading] = useState(true);
@@ -159,12 +154,6 @@ const EditStudentForm = () => {
         />
 
         <StatusSection 
-          formData={formData}
-          setFormData={setFormData}
-          error={error}
-        />
-
-        <StipendSection 
           formData={formData}
           setFormData={setFormData}
           error={error}

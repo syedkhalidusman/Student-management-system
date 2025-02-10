@@ -1,76 +1,65 @@
 import Stipend from '../models/Stipend.js';
 
+// Get all stipends
 export const getStipends = async (req, res) => {
   try {
-    const stipends = await Stipend.find().sort({ createdAt: -1 });
+    const stipends = await Stipend.find().sort({ stipendName: 1 });
     res.status(200).json(stipends);
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch stipends" });
   }
 };
 
-export const createStipend = async (req, res) => {
-  const { stipendName, amount } = req.body;
+// Get stipend by ID
+export const getStipendById = async (req, res) => {
   try {
-    const existingStipend = await Stipend.findOne({ 
-      stipendName: { $regex: new RegExp(`^${stipendName}$`, 'i') } 
-    });
-    
-    if (existingStipend) {
-      return res.status(400).json({ message: "Stipend already exists" });
+    const stipend = await Stipend.findById(req.params.id);
+    if (!stipend) {
+      return res.status(404).json({ message: "Stipend not found" });
     }
-
-    const newStipend = new Stipend({ 
-      stipendName: stipendName.trim(), 
-      amount: Number(amount) 
-    });
-    await newStipend.save();
-    res.status(201).json(newStipend);
+    res.status(200).json(stipend);
   } catch (error) {
-    res.status(500).json({ 
-      message: error.code === 11000 ? "Stipend already exists" : "Failed to create stipend" 
-    });
+    res.status(500).json({ message: "Failed to fetch stipend" });
   }
 };
 
-export const updateStipend = async (req, res) => {
-  const { id } = req.params;
-  const { stipendName, amount } = req.body;
-  
+// Create new stipend
+export const createStipend = async (req, res) => {
   try {
-    const existingStipend = await Stipend.findOne({
-      stipendName: { $regex: new RegExp(`^${stipendName}$`, 'i') },
-      _id: { $ne: id }
-    });
+    const newStipend = new Stipend(req.body);
+    await newStipend.save();
+    res.status(201).json(newStipend);
+  } catch (error) {
+    res.status(400).json({ message: "Failed to create stipend" });
+  }
+};
 
-    if (existingStipend) {
-      return res.status(400).json({ message: "Stipend name already exists" });
-    }
-
+// Update stipend
+export const updateStipend = async (req, res) => {
+  try {
     const updatedStipend = await Stipend.findByIdAndUpdate(
-      id,
-      { stipendName: stipendName.trim(), amount: Number(amount) },
+      req.params.id,
+      req.body,
       { new: true }
     );
-    
     if (!updatedStipend) {
       return res.status(404).json({ message: "Stipend not found" });
     }
     res.status(200).json(updatedStipend);
   } catch (error) {
-    res.status(500).json({ message: "Failed to update stipend" });
+    res.status(400).json({ message: "Failed to update stipend" });
   }
 };
 
+// Delete stipend
 export const deleteStipend = async (req, res) => {
-  const { id } = req.params;
   try {
-    const deletedStipend = await Stipend.findByIdAndDelete(id);
+    const deletedStipend = await Stipend.findByIdAndDelete(req.params.id);
     if (!deletedStipend) {
       return res.status(404).json({ message: "Stipend not found" });
     }
     res.status(200).json({ message: "Stipend deleted successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Failed to delete stipend" });
+    res.status(400).json({ message: "Failed to delete stipend" });
   }
 };

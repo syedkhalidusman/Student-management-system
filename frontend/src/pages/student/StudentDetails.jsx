@@ -12,17 +12,33 @@ const StudentDetails = () => {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    axios
-      .get(`/api/students/${id}`)
-      .then((response) => {
-        setStudent(response.data);
+    const fetchStudentDetails = async () => {
+      try {
+        const response = await axios.get(`/api/students/${id}`);
+        const studentData = response.data;
+        
+        // If student has a stipend, fetch the stipend details
+        if (studentData.hasStipend && studentData.stipendId) {
+          try {
+            const stipendResponse = await axios.get(`/api/stipends/${studentData.stipendId}`);
+            studentData.stipendDetails = stipendResponse.data;
+          } catch (stipendError) {
+            console.error("Failed to fetch stipend details:", stipendError);
+            // Don't fail the whole component if stipend fetch fails
+            studentData.stipendDetails = null;
+          }
+        }
+        
+        setStudent(studentData);
         setLoading(false);
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error("Failed to fetch student details", err);
         setError("Failed to load student details. Please try again.");
         setLoading(false);
-      });
+      }
+    };
+
+    fetchStudentDetails();
   }, [id]);
 
   const handleBack = () => {
@@ -169,29 +185,24 @@ const StudentDetails = () => {
       {student?.hasStipend && (
         <div className="bg-gray-800 p-4 rounded-lg mt-4">
           <h2 className="text-xl font-semibold mb-3">Stipend Information</h2>
-          <DetailItem label="Stipend Status" value={student.hasStipend ? "Yes" : "No"} />
-          <DetailItem label="Stipend Amount" value={student.stipendAmount} />
-          {student.stipendHistory && student.stipendHistory.length > 0 && (
-            <>
-              <h3 className="text-lg font-semibold mt-3">Stipend History</h3>
-              <table className="w-full table-auto border-collapse border border-gray-600">
-                <thead>
-                  <tr className="bg-gray-700">
-                    <th className="border border-gray-600 p-2">Amount</th>
-                    <th className="border border-gray-600 p-2">Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {student.stipendHistory.map((record, index) => (
-                    <tr key={index} className="hover:bg-gray-700">
-                      <td className="border border-gray-600 p-2">{record.amount}</td>
-                      <td className="border border-gray-600 p-2">{formatDate(record.date)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </>
-          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <DetailItem 
+              label="Stipend Status" 
+              value={student.hasStipend ? "Enabled" : "Disabled"} 
+            />
+            {student.stipendDetails && (
+              <>
+                <DetailItem 
+                  label="Stipend name" 
+                  value={student.stipendDetails.stipendName} 
+                />
+                <DetailItem 
+                  label="Stipend Amount" 
+                  value={`RS:${student.stipendDetails.amount}`} 
+                />
+              </>
+            )}
+          </div>
         </div>
       )}
       
