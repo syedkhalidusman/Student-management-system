@@ -9,7 +9,7 @@ export const createStudent = async (req, res) => {
     const requiredFields = [
       'name', 
       'class', 
-      'subject', 
+      'department', // Changed from 'subject' to 'department'
       'fatherName', 
       'roleNumber',
       'registrationNumber',
@@ -68,7 +68,9 @@ export const getStudents = async (req, res) => {
   try {
     const { class: classId } = req.query;
     const query = classId ? { class: classId } : {};
-    const students = await Student.find(query).populate('class').populate('subject');
+    const students = await Student.find(query)
+      .populate('class')
+      .populate('department');
     res.status(200).json(students);
   } catch (error) {
     res.status(400).json({ message: 'Error fetching students', error: error.message });
@@ -78,7 +80,9 @@ export const getStudents = async (req, res) => {
 // Get a single student by ID
 export const getStudentById = async (req, res) => {
   try {
-    const student = await Student.findById(req.params.id).populate('class').populate('subject');
+    const student = await Student.findById(req.params.id)
+      .populate('class')
+      .populate('department');
     if (!student) {
       return res.status(404).json({ message: 'Student not found' });
     }

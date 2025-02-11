@@ -115,9 +115,9 @@ const studentSchema = new mongoose.Schema(
       required: true,
       enum: ['Male', 'Female'],
     },
-    subject: {
+    department: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Subject',
+      ref: 'Department',  // Make sure you have a Department model
       required: true,
     },
     status: {

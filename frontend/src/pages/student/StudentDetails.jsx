@@ -72,12 +72,12 @@ const StudentDetails = () => {
     );
   };
 
-  const formatSubjectInfo = (subjectData) => {
-    if (!subjectData) return "N/A";
+  const formatDepartmentInfo = (departmentData) => {
+    if (!departmentData) return "N/A";
     return (
       <div>
-        <p className="text-white">{subjectData.subjectName}</p>
-        <p className="text-sm text-gray-400">{subjectData.description}</p>
+        <p className="text-white">{departmentData.departmentName}</p>
+        <p className="text-sm text-gray-400">{departmentData.description}</p>
       </div>
     );
   };
@@ -132,7 +132,10 @@ const StudentDetails = () => {
         <DetailItem label="Qualification" value={student.qualification} />
         <DetailItem label="Class" value={student.class?.className || "N/A"} />
         <DetailItem label="Gender" value={student.gender} />
-        <DetailItem label="Subject" value={student.subject?.subjectName || "N/A"} />
+        <DetailItem 
+          label="Department" 
+          value={student.department?.departmentName || "N/A"} 
+        />
 
         <div className="col-span-full flex justify-center mb-4">
           <button

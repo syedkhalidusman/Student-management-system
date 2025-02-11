@@ -30,7 +30,7 @@ const EditStudentForm = () => {
     qualification: '',
     class: '',
     gender: '',
-    subject: '',
+    department: '', // Changed from subject to department
     status: 'Active',
     leaveRecords: []
   });
@@ -57,7 +57,7 @@ const EditStudentForm = () => {
 
         // Handle nested objects
         studentData.class = studentData.class?._id || '';
-        studentData.subject = studentData.subject?._id || '';
+        studentData.department = studentData.department?._id || ''; // Changed from subject to department
 
         // Update form data
         setFormData(studentData);

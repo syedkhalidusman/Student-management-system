@@ -29,7 +29,7 @@ const AddStudentForm = () => {
     qualification: '',
     class: '',
     gender: '',
-    subject: '',
+    department: '', // Changed from subject to department
     status: 'Active',
   });
   const [error, setError] = useState({});

@@ -5,20 +5,20 @@ import { renderInput, renderSelect } from '../../../components/student/shared/Fo
 
 export const AcademicInformationSection = ({ formData, setFormData, error }) => {
   const [classes, setClasses] = useState([]);
-  const [subjects, setSubjects] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [stipends, setStipends] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [classesRes, subjectsRes, stipendsRes] = await Promise.all([
+        const [classesRes, departmentsRes, stipendsRes] = await Promise.all([
           axios.get('/api/classes'),
-          axios.get('/api/subjects'),
+          axios.get('/api/departments'),
           axios.get('/api/stipends')
         ]);
         setClasses(classesRes.data);
-        setSubjects(subjectsRes.data);
+        setDepartments(departmentsRes.data);
         setStipends(stipendsRes.data);
       } catch (err) {
         console.error('Failed to load academic data:', err);
@@ -75,18 +75,18 @@ export const AcademicInformationSection = ({ formData, setFormData, error }) => 
         </div>
 
         <div className="flex flex-col">
-          <label className="text-gray-300 mb-2">Subject</label>
+          <label className="text-gray-300 mb-2">Department</label>
           {renderSelect(
-            'subject',
-            'Subject',
-            subjects.map(subj => ({
-              value: subj._id,
-              label: subj.subjectName
+            'department',
+            'Department',
+            departments.map(dept => ({
+              value: dept._id,
+              label: dept.departmentName
             })),
-            renderFormData.subject || '',
+            renderFormData.department || '',
             handleChange,
             null,
-            error?.subject
+            error?.department
           )}
         </div>
 
