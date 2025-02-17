@@ -95,17 +95,54 @@ export const getStudentById = async (req, res) => {
 // Update a student by ID
 export const updateStudent = async (req, res) => {
   try {
-    const student = await Student.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    // Clean up the data before update
+    const updateData = { ...req.body };
+    
+    // Handle photo upload
+    if (req.file) {
+      updateData.photo = req.file.filename;
+    }
+
+    // Handle null or empty string stipendId
+    if (!updateData.stipendId || updateData.stipendId === 'null' || updateData.stipendId === '') {
+      updateData.stipendId = null;
+    }
+
+    // Convert dates if they exist
+    if (updateData.dateOfBirth) {
+      updateData.dateOfBirth = new Date(updateData.dateOfBirth);
+    }
+    if (updateData.dateOfJoining) {
+      updateData.dateOfJoining = new Date(updateData.dateOfJoining);
+    }
+    if (updateData.expelledDate) {
+      updateData.expelledDate = new Date(updateData.expelledDate);
+    }
+
+    const student = await Student.findByIdAndUpdate(
+      req.params.id, 
+      updateData,
+      { 
+        new: true,
+        runValidators: true
+      }
+    );
+
     if (!student) {
       return res.status(404).json({ message: 'Student not found' });
     }
+    
     res.status(200).json(student);
   } catch (error) {
+    console.error('Update error:', error);
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map(err => err.message);
       return res.status(400).json({ message: errors.join(', ') });
     }
-    res.status(400).json({ message: 'Error updating student', error: error.message });
+    res.status(400).json({ 
+      message: 'Error updating student', 
+      error: error.message 
+    });
   }
 };
 

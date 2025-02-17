@@ -1,8 +1,13 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { motion } from 'framer-motion';
 import { renderInput, renderSelect } from '../../../components/student/shared/FormFields';
 
-export const BasicInformationSection = ({ formData, setFormData, error }) => {
+const API_URL = import.meta.env.VITE_API_URL;
+
+
+export const BasicInformationSection = ({ formData, setFormData, error, isEditing }) => {
+  const fileInputRef = useRef(null);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     
@@ -27,6 +32,27 @@ export const BasicInformationSection = ({ formData, setFormData, error }) => {
     }
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData(prev => ({
+        ...prev,
+        photo: file,
+        photoPreview: URL.createObjectURL(file)
+      }));
+    }
+  };
+
+  const getImageUrl = () => {
+    if (formData.photoPreview) {
+      return formData.photoPreview;
+    }
+    if (formData.photo) {
+      return `${API_URL}/uploads/students/${formData.photo}`;
+    }
+    return '/placeholder-avatar.png';
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -34,6 +60,39 @@ export const BasicInformationSection = ({ formData, setFormData, error }) => {
       className="bg-gray-800 p-6 rounded-lg mb-6"
     >
       <h2 className="text-xl font-semibold mb-4 text-gray-200">Basic Information</h2>
+      
+      {/* Update photo upload section */}
+      <div className="mb-6 flex justify-center">
+        <div className="w-32 h-32 relative group">
+          <div 
+            className="w-full h-full rounded-full border-2 border-gray-300 overflow-hidden cursor-pointer"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <img 
+              src={getImageUrl()}
+              alt="Student"
+              className="w-full h-full object-cover transition-opacity duration-200"
+              onError={(e) => {
+                console.log("Image load failed, using placeholder");
+                e.target.src = '/placeholder-avatar.png';
+              }}
+            />
+            <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-200">
+              <span className="text-white text-sm">
+                {isEditing ? 'Change Photo' : 'Add Photo'}
+              </span>
+            </div>
+          </div>
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            accept="image/*"
+            onChange={handleFileChange}
+          />
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="flex flex-col">
           <label className="text-gray-300 mb-2">Student Name</label>

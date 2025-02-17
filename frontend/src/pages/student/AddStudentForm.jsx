@@ -55,18 +55,25 @@ const AddStudentForm = () => {
     }
 
     try {
-      // Clean up the data
-      const dataToSubmit = {
-        ...formData,
-        age: parseInt(formData.age),
-        dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth).toISOString() : undefined,
-        dateOfJoining: formData.dateOfJoining ? new Date(formData.dateOfJoining).toISOString() : undefined
-      };
-
-      console.log('Submitting data:', dataToSubmit); // Debug log
-
-      const response = await axios.post('/api/students', dataToSubmit);
+      const formDataToSend = new FormData();
       
+      // Append all form fields to FormData
+      Object.keys(formData).forEach(key => {
+        if (key === 'photo') {
+          if (formData[key] instanceof File) {
+            formDataToSend.append('photo', formData[key]);
+          }
+        } else if (key !== 'photoPreview') {
+          formDataToSend.append(key, formData[key]);
+        }
+      });
+
+      const response = await axios.post('/api/students', formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
       if (response.status === 201) {
         navigate('/student/list');
       }

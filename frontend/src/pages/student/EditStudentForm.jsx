@@ -59,6 +59,11 @@ const EditStudentForm = () => {
         studentData.class = studentData.class?._id || '';
         studentData.department = studentData.department?._id || ''; // Changed from subject to department
 
+        // If there's an existing photo, create the full URL
+        if (studentData.photo) {
+          studentData.photoUrl = `/api/uploads/students/${studentData.photo}`;
+        }
+
         // Update form data
         setFormData(studentData);
         setLoading(false);
@@ -76,12 +81,39 @@ const EditStudentForm = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const response = await axios.put(`/api/students/${id}`, formData);
+      const formDataToSend = new FormData();
+      
+      // Append all form fields to FormData, handling special cases
+      Object.keys(formData).forEach(key => {
+        if (key === 'photo') {
+          if (formData[key] instanceof File) {
+            formDataToSend.append('photo', formData[key]);
+          }
+        } else if (key === 'stipendId') {
+          // Handle stipendId specifically
+          formDataToSend.append('stipendId', formData[key] || null);
+        } else if (key !== 'photoPreview') {
+          // Handle all other fields
+          if (formData[key] !== undefined && formData[key] !== '') {
+            formDataToSend.append(key, formData[key]);
+          }
+        }
+      });
+
+      const response = await axios.put(`/api/students/${id}`, formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
       if (response.status === 200) {
         navigate('/student/list');
       }
     } catch (error) {
-      setError({ submit: 'Failed to update student' });
+      console.error('Update error:', error.response?.data || error);
+      setError({
+        submit: error.response?.data?.message || 'Failed to update student'
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -133,7 +165,7 @@ const EditStudentForm = () => {
         </div>
       </div>
       
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit} className="space-y-8" encType="multipart/form-data">
         <BasicInformationSection 
           formData={formData}
           setFormData={setFormData}
@@ -158,6 +190,12 @@ const EditStudentForm = () => {
           setFormData={setFormData}
           error={error}
         />
+
+        {error.submit && (
+          <div className="text-red-500 text-center p-2">
+            {error.submit}
+          </div>
+        )}
 
         <div className="flex justify-between pt-6">
           <button

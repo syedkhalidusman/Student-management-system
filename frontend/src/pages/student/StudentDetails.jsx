@@ -11,6 +11,9 @@ const StudentDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const API_URL = import.meta.env.VITE_API_URL;
+
+
   useEffect(() => {
     const fetchStudentDetails = async () => {
       try {
@@ -105,6 +108,23 @@ const StudentDetails = () => {
           </span>
         )}
       </div>
+
+      {student?.photo && (
+        <div className="flex justify-center mb-6">
+          <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-gray-700">
+            <img
+              src={`${API_URL}/uploads/students/${student.photo}`}
+              alt={student.name}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                console.log("Image load failed:", e.target.src);
+                e.target.onerror = null; // Prevent infinite loop
+                e.target.src = '/placeholder-avatar.png';
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <DetailItem label="Student Name" value={student.name} />
