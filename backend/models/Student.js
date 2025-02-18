@@ -158,6 +158,14 @@ const studentSchema = new mongoose.Schema(
       type: String,
       default: null
     },
+    birthCertificate: {
+      type: String,
+      default: null
+    },
+    bForm: {
+      type: String,
+      default: null
+    },
   },
   {
     timestamps: true,

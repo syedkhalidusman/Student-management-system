@@ -28,8 +28,23 @@ export const createStudent = async (req, res) => {
       return res.status(400).json({ errors });
     }
 
+    const studentData = { ...req.body };
+    
+    // Handle file uploads
+    if (req.files) {
+      if (req.files.photo) {
+        studentData.photo = req.files.photo[0].filename;
+      }
+      if (req.files.birthCertificate) {
+        studentData.birthCertificate = req.files.birthCertificate[0].filename;
+      }
+      if (req.files.bForm) {
+        studentData.bForm = req.files.bForm[0].filename;
+      }
+    }
+
     // Create and save student
-    const student = new Student(req.body);
+    const student = new Student(studentData);
     await student.save();
 
     res.status(201).json(student);
@@ -98,9 +113,17 @@ export const updateStudent = async (req, res) => {
     // Clean up the data before update
     const updateData = { ...req.body };
     
-    // Handle photo upload
-    if (req.file) {
-      updateData.photo = req.file.filename;
+    // Handle file uploads
+    if (req.files) {
+      if (req.files.photo) {
+        updateData.photo = req.files.photo[0].filename;
+      }
+      if (req.files.birthCertificate) {
+        updateData.birthCertificate = req.files.birthCertificate[0].filename;
+      }
+      if (req.files.bForm) {
+        updateData.bForm = req.files.bForm[0].filename;
+      }
     }
 
     // Handle null or empty string stipendId
