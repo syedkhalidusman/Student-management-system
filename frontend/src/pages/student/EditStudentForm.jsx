@@ -38,6 +38,11 @@ const EditStudentForm = () => {
   const [error, setError] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const getFileUrl = (type, filename) => {
+    if (!filename) return null;
+    return `/api/uploads/students/${type}/${filename}`;
+  };
+
   useEffect(() => {
     const loadStudent = async () => {
       try {
@@ -59,9 +64,15 @@ const EditStudentForm = () => {
         studentData.class = studentData.class?._id || '';
         studentData.department = studentData.department?._id || ''; // Changed from subject to department
 
-        // If there's an existing photo, create the full URL
+        // Handle file URLs
         if (studentData.photo) {
-          studentData.photoUrl = `/api/uploads/students/${studentData.photo}`;
+          studentData.photoPreview = getFileUrl('photos', studentData.photo);
+        }
+        if (studentData.birthCertificate) {
+          studentData.birthCertificateUrl = getFileUrl('documents', studentData.birthCertificate);
+        }
+        if (studentData.bForm) {
+          studentData.bFormUrl = getFileUrl('documents', studentData.bForm);
         }
 
         // Update form data
@@ -83,17 +94,18 @@ const EditStudentForm = () => {
     try {
       const formDataToSend = new FormData();
       
-      // Append all form fields to FormData, handling special cases
+      // Handle file uploads
+      const fileFields = ['photo', 'birthCertificate', 'bForm'];
       Object.keys(formData).forEach(key => {
-        if (key === 'photo') {
+        if (fileFields.includes(key)) {
+          // Only append if it's a new file
           if (formData[key] instanceof File) {
-            formDataToSend.append('photo', formData[key]);
+            formDataToSend.append(key, formData[key]);
           }
         } else if (key === 'stipendId') {
-          // Handle stipendId specifically
           formDataToSend.append('stipendId', formData[key] || null);
-        } else if (key !== 'photoPreview') {
-          // Handle all other fields
+        } else if (!key.endsWith('Preview') && !key.endsWith('Url')) {
+          // Skip preview and URL fields
           if (formData[key] !== undefined && formData[key] !== '') {
             formDataToSend.append(key, formData[key]);
           }
