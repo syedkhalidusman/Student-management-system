@@ -42,6 +42,32 @@ app.use('/uploads', express.static(uploadsPath));
 const studentUploadsDir = path.join(__dirname, '../uploads/students');
 fs.mkdirSync(studentUploadsDir, { recursive: true });
 
+// Create upload directories
+const createUploadDirs = () => {
+  const dirs = [
+    path.join(__dirname, '../uploads/students/photos'),
+    path.join(__dirname, '../uploads/students/documents')
+  ];
+  
+  dirs.forEach(dir => {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  });
+};
+
+createUploadDirs();
+
+// Serve static files with specific routes
+app.use('/api/uploads/students/photos', express.static(path.join(__dirname, '../uploads/students/photos')));
+app.use('/api/uploads/students/documents', express.static(path.join(__dirname, '../uploads/students/documents')));
+
+// Error handling for missing files
+app.use('/api/uploads', (req, res) => {
+  console.log('File not found:', req.url);
+  res.status(404).send('File not found');
+});
+
 // ✅ API to Serve Images Directly
 app.get('/uploads/students/:filename', (req, res) => {
     const filePath = path.join(studentUploadsDir, req.params.filename);

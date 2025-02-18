@@ -11,8 +11,20 @@ const StudentDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const API_URL = import.meta.env.VITE_API_URL;
 
+  const getPhotoUrl = (filename) => {
+    if (!filename) return '/placeholder-avatar.png';
+    const url = `/api/uploads/students/photos/${filename}`;
+    console.log('Photo URL:', url); // Debug log
+    return url;
+  };
+
+  const getDocumentUrl = (filename) => {
+    if (!filename) return null;
+    const url = `/api/uploads/students/documents/${filename}`;
+    console.log('Document URL:', url); // Debug log
+    return url;
+  };
 
   useEffect(() => {
     const fetchStudentDetails = async () => {
@@ -95,32 +107,52 @@ const StudentDetails = () => {
     });
   };
 
+  const renderStudentPhoto = () => (
+    student?.photo && (
+      <div className="flex justify-center mb-6">
+        <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-gray-700 shadow-xl">
+          <img
+            src={getPhotoUrl(student.photo)}
+            alt={student.name}
+            className="w-full h-full object-cover hover:opacity-90 transition-opacity"
+            onClick={() => window.open(getPhotoUrl(student.photo), '_blank')}
+            onError={(e) => {
+              console.error("Image load failed:", e.target.src);
+              e.target.onerror = null;
+              e.target.src = '/placeholder-avatar.png';
+            }}
+          />
+        </div>
+      </div>
+    )
+  );
+
   const renderDocument = (document, label) => {
     if (!document) return null;
     
     const isImage = /\.(jpg|jpeg|png|gif)$/i.test(document);
-    const documentUrl = `${API_URL}/uploads/students/documents/${document}`;
+    const documentUrl = getDocumentUrl(document);
 
     return (
-      <div className="col-span-full bg-gray-800 p-4 rounded-lg mt-4">
+      <div className="bg-gray-800 p-4 rounded-lg h-full flex flex-col">
         <div className="flex justify-between items-center mb-3">
-          <h3 className="text-lg font-semibold">{label}</h3>
+          <h3 className="text-lg font-semibold truncate">{label}</h3>
           <a
             href={documentUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition-colors text-sm"
+            className="bg-blue-600 px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors flex-shrink-0 ml-2"
           >
-            Open in New Tab
+            View
           </a>
         </div>
         
-        {isImage && (
-          <div className="relative w-full max-w-md mx-auto mt-4">
+        {isImage ? (
+          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg">
             <img
               src={documentUrl}
               alt={label}
-              className="w-full rounded-lg shadow-lg cursor-pointer"
+              className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
               onClick={() => window.open(documentUrl, '_blank')}
               onError={(e) => {
                 console.log(`Failed to load ${label}:`, e);
@@ -128,21 +160,32 @@ const StudentDetails = () => {
               }}
             />
           </div>
-        )}
-        
-        {!isImage && (
-          <div className="bg-gray-700 p-3 rounded">
-            <div className="flex items-center text-sm text-gray-300">
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <span>{document}</span>
-            </div>
+        ) : (
+          <div className="bg-gray-700 p-3 rounded mt-2 flex items-center">
+            <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span className="truncate text-sm text-gray-300">{document}</span>
           </div>
         )}
       </div>
     );
   };
+
+  const renderDocumentsSection = () => (
+    <div className="col-span-full mt-6">
+      <h2 className="text-xl font-semibold mb-4">Documents</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+        {student.birthCertificate && renderDocument(student.birthCertificate, 'Birth Certificate')}
+        {student.bForm && renderDocument(student.bForm, 'B-Form')}
+        {!student.birthCertificate && !student.bForm && (
+          <div className="col-span-full text-center py-8 bg-gray-800 rounded-lg">
+            <p className="text-gray-400">No documents uploaded</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
   if (loading) return <p className="text-white">Loading...</p>;
   if (error) return <p className="text-red-500">{error}</p>;
@@ -158,22 +201,7 @@ const StudentDetails = () => {
         )}
       </div>
 
-      {student?.photo && (
-        <div className="flex justify-center mb-6">
-          <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-gray-700">
-            <img
-              src={`${API_URL}/uploads/students/${student.photo}`}
-              alt={student.name}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                console.log("Image load failed:", e.target.src);
-                e.target.onerror = null; // Prevent infinite loop
-                e.target.src = '/placeholder-avatar.png';
-              }}
-            />
-          </div>
-        </div>
-      )}
+      {renderStudentPhoto()}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <DetailItem label="Student Name" value={student.name} />
@@ -253,14 +281,7 @@ const StudentDetails = () => {
           </div>
         )}
 
-        <div className="col-span-full mt-6">
-          <h2 className="text-xl font-semibold mb-4">Documents</h2>
-          {student.birthCertificate && renderDocument(student.birthCertificate, 'Birth Certificate')}
-          {student.bForm && renderDocument(student.bForm, 'B-Form')}
-          {!student.birthCertificate && !student.bForm && (
-            <p className="text-gray-400 text-center">No documents uploaded</p>
-          )}
-        </div>
+        {renderDocumentsSection()}
 
       </div>
 
