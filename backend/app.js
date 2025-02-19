@@ -106,6 +106,17 @@ app.use((err, req, res, next) => {
   next(err);
 });
 
+// Add error handling middleware for file operations
+app.use((err, req, res, next) => {
+  if (err.code === 'ENOENT') {
+    console.error('File operation error:', err);
+    return res.status(500).json({
+      message: 'Error processing file operation'
+    });
+  }
+  next(err);
+});
+
 // 📌 Start Server
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on http://localhost:${PORT}`);
