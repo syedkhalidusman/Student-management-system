@@ -15,14 +15,12 @@ const StudentDetails = () => {
   const getPhotoUrl = (filename) => {
     if (!filename) return '/placeholder-avatar.png';
     const url = `/api/uploads/students/photos/${filename}`;
-    console.log('Photo URL:', url); // Debug log
     return url;
   };
 
   const getDocumentUrl = (filename) => {
     if (!filename) return null;
     const url = `/api/uploads/students/documents/${filename}`;
-    console.log('Document URL:', url); // Debug log
     return url;
   };
 
