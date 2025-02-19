@@ -1,4 +1,5 @@
 import Student from '../models/Student.js';
+import { deleteFile, deleteStudentFiles } from '../utils/fileHelper.js';
 
 // Create a new student
 export const createStudent = async (req, res) => {
@@ -110,18 +111,35 @@ export const getStudentById = async (req, res) => {
 // Update a student by ID
 export const updateStudent = async (req, res) => {
   try {
-    // Clean up the data before update
+    // Get the existing student first
+    const existingStudent = await Student.findById(req.params.id);
+    if (!existingStudent) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
     const updateData = { ...req.body };
     
-    // Handle file uploads
+    // Handle file uploads and cleanup old files
     if (req.files) {
       if (req.files.photo) {
+        // Delete old photo if it exists
+        if (existingStudent.photo) {
+          await deleteFile(existingStudent.photo, 'photo');
+        }
         updateData.photo = req.files.photo[0].filename;
       }
       if (req.files.birthCertificate) {
+        // Delete old birth certificate if it exists
+        if (existingStudent.birthCertificate) {
+          await deleteFile(existingStudent.birthCertificate, 'document');
+        }
         updateData.birthCertificate = req.files.birthCertificate[0].filename;
       }
       if (req.files.bForm) {
+        // Delete old B-Form if it exists
+        if (existingStudent.bForm) {
+          await deleteFile(existingStudent.bForm, 'document');
+        }
         updateData.bForm = req.files.bForm[0].filename;
       }
     }
@@ -151,10 +169,6 @@ export const updateStudent = async (req, res) => {
       }
     );
 
-    if (!student) {
-      return res.status(404).json({ message: 'Student not found' });
-    }
-    
     res.status(200).json(student);
   } catch (error) {
     console.error('Update error:', error);
@@ -172,12 +186,20 @@ export const updateStudent = async (req, res) => {
 // Delete a student by ID
 export const deleteStudent = async (req, res) => {
   try {
-    const student = await Student.findByIdAndDelete(req.params.id);
+    const student = await Student.findById(req.params.id);
     if (!student) {
       return res.status(404).json({ message: 'Student not found' });
     }
-    res.status(200).json({ message: 'Student deleted successfully' });
+
+    // Delete all associated files first
+    await deleteStudentFiles(student);
+
+    // Then delete the student record
+    await student.deleteOne();
+
+    res.status(200).json({ message: 'Student and associated files deleted successfully' });
   } catch (error) {
+    console.error('Delete error:', error);
     res.status(400).json({ message: 'Error deleting student', error: error.message });
   }
 };
