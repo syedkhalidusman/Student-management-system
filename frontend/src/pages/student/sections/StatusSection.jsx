@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { renderSelect, renderInput } from '../../../components/student/shared/FormFields';
+import { renderSelect, renderInput } from './FormFields';
 
 export const StatusSection = ({ formData, setFormData, error }) => {
   const handleChange = (e) => {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { renderInput } from '../../../components/student/shared/FormFields';
+import { renderInput } from './FormFields';
 
 export const ContactInformationSection = ({ formData, setFormData, error }) => {
   const handleChange = (e) => {
