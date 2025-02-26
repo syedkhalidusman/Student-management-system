@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { motion } from 'framer-motion';
-import { renderInput, renderSelect } from '../../../components/student/shared/FormFields';
+import { renderInput, renderSelect } from './FormFields';
 
 const API_URL = import.meta.env.VITE_API_URL;
 

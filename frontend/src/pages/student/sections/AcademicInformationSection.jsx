@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
-import { renderInput, renderSelect } from '../../../components/student/shared/FormFields';
+import { renderInput, renderSelect } from './FormFields';
 
 export const AcademicInformationSection = ({ formData, setFormData, error }) => {
   const [classes, setClasses] = useState([]);
