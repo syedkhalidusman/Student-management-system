@@ -19,8 +19,33 @@ const storage = multer.diskStorage({
         cb(null, uploadPath);
     },
     filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+        // Get student name from the request body
+        const studentName = req.body.name ? req.body.name.replace(/\s+/g, '_') : 'Unknown';
+        
+        // Determine file type category
+        let fileType;
+        switch (file.fieldname) {
+            case 'photo':
+                fileType = 'photo';
+                break;
+            case 'birthCertificate':
+                fileType = 'birth';
+                break;
+            case 'bForm':
+                fileType = 'bform';
+                break;
+            default:
+                fileType = 'doc';
+        }
+        
+        // Generate random number
+        const randomNumber = Math.floor(Math.random() * 10000);
+        
+        // Create filename with original extension
+        const fileExtension = path.extname(file.originalname);
+        const newFilename = `${studentName}_${fileType}_${randomNumber}${fileExtension}`;
+        
+        cb(null, newFilename);
     }
 });
 
